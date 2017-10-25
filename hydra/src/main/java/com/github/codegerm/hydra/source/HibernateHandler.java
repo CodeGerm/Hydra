@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -19,7 +20,7 @@ import com.github.codegerm.hydra.reader.HibernateContext;
 import com.github.codegerm.hydra.reader.HibernateReader;
 import com.opencsv.CSVWriter;
 
-public class HibernateHandler implements Runnable {
+public class HibernateHandler implements Callable<Boolean> {
 
 	private Context context;
 	private ChannelProcessor processor;
@@ -33,7 +34,7 @@ public class HibernateHandler implements Runnable {
 	private String table;
 	
 	@Override
-	public void run() {
+	public Boolean call() {
 
 		try {
 	
@@ -48,9 +49,10 @@ public class HibernateHandler implements Runnable {
 		} catch (IOException | InterruptedException e) {
 			LOG.error("Error procesing row", e);
 			close();
+			return false;
 		}
 		close();
-
+		return true;
 	}
 
 	public HibernateHandler(Context context, ChannelProcessor processor, String table) {

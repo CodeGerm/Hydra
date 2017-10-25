@@ -142,6 +142,7 @@ public class TestSqlSource {
 		context.put("status.file.name", "statusFile");
 		context.put("status.file.path", SOURCE_STATUS_DIR);
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
+		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
 
 		source.configure(context);
 
@@ -150,16 +151,10 @@ public class TestSqlSource {
 	@Test
 	public void runTest() {
 		source.start();
-
 		try {
 			source.process();
 		} catch (EventDeliveryException e2) {
 			e2.printStackTrace();
-		}
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
 		}
 		List<Event> channelEvents = new ArrayList<>();
 		Transaction txn = channel.getTransaction();
