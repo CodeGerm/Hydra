@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.flume.Context;
 import org.apache.flume.EventDeliveryException;
+import org.apache.flume.FlumeException;
 import org.apache.flume.PollableSource;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.source.AbstractSource;
@@ -18,12 +19,15 @@ import org.apache.flume.source.PollableSourceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.codegerm.hydra.event.StatusEventBuilder;
+
 public class SqlSource extends AbstractSource implements Configurable, PollableSource {
 
-	private static final String TRIGGER_EVENTTYPE = "jdbc_event";
 	private ExecutorService executor;
 	private static final Logger LOG = LoggerFactory.getLogger(SqlSource.class);
 	private List<String> models;
+	private String modelId;
+	private String snapshotId;
 	private static final int DEFAULT_THREAD_NUM = 4;
 	private static final long DEFAULT_POLL_INTERVAL = 100000;
 	private static final long DEFAULT_TIMEOUT = 100000;
@@ -51,7 +55,11 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 				PollableSourceConstants.DEFAULT_BACKOFF_SLEEP_INCREMENT);
 		maxBackOffSleepInterval = context.getLong(PollableSourceConstants.MAX_BACKOFF_SLEEP,
 				PollableSourceConstants.DEFAULT_MAX_BACKOFF_SLEEP);
-
+		
+		if(!context.containsKey(SqlSourceUtil.MODEL_ID_KEY))
+			throw new FlumeException("No model id defined");
+		modelId = context.getString(SqlSourceUtil.MODEL_ID_KEY);
+		snapshotId = modelId+System.currentTimeMillis();
 	}
 
 	@Override
@@ -69,16 +77,19 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	@Override
 	public Status process() throws EventDeliveryException {
 		LOG.info("start processing events");
+		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId));
 		try {
 
 			List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
 			for (String table : models) {
 				LOG.info("Starting worker thread for table [" + table + "]");
-				HibernateHandler handler = new HibernateHandler(context, getChannelProcessor(), table);
+				HibernateHandler handler = new HibernateHandler(snapshotId, context, getChannelProcessor(), table);
 				taskList.add(handler);
 			}
 			List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
 			Thread.sleep(pollInterval);
+			
+			getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId));
 			return Status.READY;
 
 		} catch (Exception e) {
@@ -96,6 +107,10 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	@Override
 	public long getMaxBackOffSleepInterval() {
 		return maxBackOffSleepInterval;
+	}
+	
+	protected Boolean validateResult(){
+		return false;
 	}
 
 }

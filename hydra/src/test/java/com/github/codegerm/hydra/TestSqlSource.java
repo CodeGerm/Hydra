@@ -143,6 +143,7 @@ public class TestSqlSource {
 		context.put("status.file.path", SOURCE_STATUS_DIR);
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
+		context.put(SqlSourceUtil.MODEL_ID_KEY, "testModel");
 
 		source.configure(context);
 
@@ -179,8 +180,7 @@ public class TestSqlSource {
 
 		for (Event e : channelEvents) {
 			String str = new String(e.getBody(), Charsets.UTF_8);
-			System.out.println(str);
-			System.out.println(e.getHeaders());
+			System.out.println("Event header: " + e.getHeaders() + ", Event body: " + str);
 		}
 
 	}
