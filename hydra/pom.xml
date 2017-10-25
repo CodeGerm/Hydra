@@ -26,6 +26,24 @@
 			<artifactId>flume-ng-node</artifactId>
 			<version>${flume.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.keedio.flume.flume-ng-sources</groupId>
+			<artifactId>flume-ng-sql-source</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.196</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
