@@ -72,6 +72,7 @@ public class HibernateHandler implements Runnable {
 			status_path_dir.mkdirs();
 		
 		context.put(SqlSourceUtil.STATUS_DIRECTORY_KEY, status_path);
+		context.put(SqlSourceUtil.TABLE_KEY, table);
 		/* Initialize configuration parameters */
 		jdbcContext = new HibernateContext(context, LOG.getName());
 

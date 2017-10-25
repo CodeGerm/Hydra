@@ -33,7 +33,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 		this.context = context;
 		models = new ArrayList<String>();
 		if (context.containsKey("table")) {
-			String content[] = context.getString("table").split(",");
+			String content[] = context.getString(SqlSourceUtil.TABLE_KEY).split(",");
 			models.addAll(Arrays.asList(content));
 		}
 		int	thread = context.getInteger(SqlSourceUtil.WORKER_THREAD_NUM, DEFAULT_THREAD_NUM);

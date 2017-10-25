@@ -43,6 +43,7 @@ public class TestSqlSource {
 	private static final String DB_TABLE_1 = "EMPLOYEE";
 	private static final String[] DB_TABLE_1_NAMES = { "Hanks", "Jones" };
 	private static final String DB_TABLE_2 = "COMPANY";
+	private static final String[] DB_TABLE_2_NAMES = { "Compaq", "Pan Am" };
 	private static final String SOURCE_STATUS_DIR = "flume/test/status";
 	private Channel channel;
 	private SqlSource source;
@@ -58,13 +59,13 @@ public class TestSqlSource {
 		try {
 			Class.forName(DB_DRIVER);
 		} catch (ClassNotFoundException e) {
-			LOG.error("db create error: ", e);
+			LOG.error("db driver not found: ", e);
 		}
 		try {
 			dbConnection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
 			return dbConnection;
 		} catch (SQLException e) {
-			LOG.error("db create error: ", e);
+			LOG.error("db connection error: ", e);
 		}
 		return dbConnection;
 	}
@@ -73,14 +74,19 @@ public class TestSqlSource {
 
 		DeleteDbFiles.execute("db", "testdb", false);
 
+		tableSetup(DB_TABLE_1, DB_TABLE_1_NAMES);
+		tableSetup(DB_TABLE_2, DB_TABLE_2_NAMES);
+	}
+	
+	public void tableSetup(String tableName, String [] Values) throws SQLException{
 		Connection connection = getDBConnection();
 		PreparedStatement createPreparedStatement = null;
 		PreparedStatement insertPreparedStatement = null;
 		PreparedStatement selectPreparedStatement = null;
 
-		String CreateQuery = "CREATE TABLE " + DB_TABLE_1 + "(id int primary key, name varchar(255))";
-		String InsertQuery = "INSERT INTO " + DB_TABLE_1 + "(id, name) values" + "(?,?)";
-		String SelectQuery = "select * from " + DB_TABLE_1;
+		String CreateQuery = "CREATE TABLE " + tableName + "(id int primary key, name varchar(255))";
+		String InsertQuery = "INSERT INTO " + tableName + "(id, name) values" + "(?,?)";
+		String SelectQuery = "select * from " + tableName;
 
 		try {
 			connection.setAutoCommit(false);
@@ -88,10 +94,10 @@ public class TestSqlSource {
 			createPreparedStatement = connection.prepareStatement(CreateQuery);
 			createPreparedStatement.executeUpdate();
 			createPreparedStatement.close();
-			for (int i = 0; i < DB_TABLE_1_NAMES.length; i++) {
+			for (int i = 0; i < Values.length; i++) {
 				insertPreparedStatement = connection.prepareStatement(InsertQuery);
 				insertPreparedStatement.setInt(1, i + 1);
-				insertPreparedStatement.setString(2, DB_TABLE_1_NAMES[i]);
+				insertPreparedStatement.setString(2, Values[i]);
 				insertPreparedStatement.executeUpdate();
 				insertPreparedStatement.close();
 			}
@@ -99,7 +105,7 @@ public class TestSqlSource {
 			selectPreparedStatement = connection.prepareStatement(SelectQuery);
 			ResultSet rs = selectPreparedStatement.executeQuery();
 			while (rs.next()) {
-				LOG.info("row: [Id " + rs.getInt("id") + " Name " + rs.getString("name") + "] inserted");
+				LOG.info("row: [Id " + rs.getInt("id") + " Name " + rs.getString("name") + "] inserted to [" + tableName +"] table");
 			}
 			selectPreparedStatement.close();
 
@@ -111,6 +117,7 @@ public class TestSqlSource {
 		} finally {
 			connection.close();
 		}
+		
 	}
 
 	public void flumeSetup() {
@@ -130,7 +137,7 @@ public class TestSqlSource {
 		context.put("hibernate.connection.url", DB_CONNECTION);
 		context.put("hibernate.connection.user", DB_USER);
 		context.put("hibernate.connection.password", DB_PASSWORD);
-		context.put("table", "public." + DB_TABLE_1);
+		context.put("table", "public." + DB_TABLE_1 + "," + "public." + DB_TABLE_2);
 		context.put("hibernate.connection.driver_class", DB_DRIVER);
 		context.put("status.file.name", "statusFile");
 		context.put("status.file.path", SOURCE_STATUS_DIR);
