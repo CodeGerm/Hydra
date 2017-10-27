@@ -2,6 +2,8 @@ package com.github.codegerm.hydra.source;
 
 import java.io.File;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.channel.ChannelProcessor;
 import org.slf4j.Logger;
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.reader.HibernateContext;
 import com.github.codegerm.hydra.reader.HibernateReader;
+import com.github.codegerm.hydra.writer.AvroRecordUtil;
 import com.github.codegerm.hydra.writer.AvroWriter;
 
 
@@ -20,6 +23,7 @@ public class HibernateHandler extends AbstractHandler {
 	private AvroWriter avroWriter;
 	private HibernateReader hibernateReader;
 	private static final String DEFAULT_STATUS_DIRECTORY = "flume/jdbcSource/status";
+	private static final String COLUMN_TO_SELECT_KEY = "columns.to.select";
 	private static final Logger LOG = LoggerFactory.getLogger(HibernateHandler.class);
 	private String status_file_path;
 	
@@ -43,6 +47,11 @@ public class HibernateHandler extends AbstractHandler {
 
 		context.put(SqlSourceUtil.STATUS_DIRECTORY_KEY, status_path);
 		context.put(SqlSourceUtil.TABLE_KEY, table);
+		
+		List<String> columns = AvroRecordUtil.getEntityFields(entitySchema);
+		String columnToSelect = StringUtils.join(columns, ",");
+		context.put(COLUMN_TO_SELECT_KEY, columnToSelect);
+		
 		/* Initialize configuration parameters */
 		jdbcContext = new HibernateContext(context, LOG.getName());
 

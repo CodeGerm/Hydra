@@ -3,9 +3,11 @@ package com.github.codegerm.hydra.writer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
@@ -62,10 +64,20 @@ public class AvroRecordUtil {
 	}
 	
 
-	private static Object convert(Object obj){
+	public static Object convert(Object obj){
 		if(obj.getClass().getName().equals("java.sql.Timestamp"))
 			return(((Timestamp)obj).getTime());
 		return obj;
+	}
+	
+	
+	public static List<String> getEntityFields(String entitySchema) {
+		List<String> fields = new ArrayList<String>();
+		Schema schema = new Schema.Parser().parse(entitySchema);
+		for (Field field : schema.getFields()){
+			fields.add(field.name());
+		}
+		return fields;
 	}
 
 

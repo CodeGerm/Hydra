@@ -119,10 +119,10 @@ public class TestSqlSource {
 
 	public void avroSchemaSetup (){
 		String table1 = "Employee";
-		String schema1 = "{\"name\":\"Employee\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"date\",\"type\":\"long\"},{\"name\":\"isDelete\",\"type\":\"boolean\"}]}";
+		String schema1 = "{\"name\":\"Employee\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"date\",\"type\":\"long\"},{\"name\":\"isDeleted\",\"type\":\"boolean\"}]}";
 		
 		String table2 = "COMPANY";
-		String schema2 = "{\"name\":\"COMPANY\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"date\",\"type\":\"long\"},{\"name\":\"isDelete\",\"type\":\"boolean\"}]}";
+		String schema2 = "{\"name\":\"COMPANY\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"isDeleted\",\"type\":\"boolean\"}]}";
 		
 		entitySchemas = new HashMap<String, String>();
 		entitySchemas.put(table1, schema1);
