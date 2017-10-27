@@ -15,7 +15,6 @@ public class StatusEventBuilder implements EventBuilder {
 
 	public static final String STATUS_TYPE_KEY = "status.type";
 	public static final String SNAPSHOT_ID_KEY = "snapshot.id";
-	public static final String TABLE_KEY = "table.name";
 	
 	public static final String EVENT_TYPE = "Status.Event";
 
@@ -28,7 +27,7 @@ public class StatusEventBuilder implements EventBuilder {
 		header.put(TIMESTAMP_KEY, timestamp);
 		header.put(EVENT_TYPE_KEY, EVENT_TYPE);
 		if(table!=null)
-			header.put(TABLE_KEY, table);
+			header.put(ENTITY_NAME_KEY, table);
 		event.setHeaders(header);
 		return event;
 	}

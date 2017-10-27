@@ -1,21 +1,15 @@
 package com.github.codegerm.hydra.source;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
 import org.apache.flume.Context;
-import org.apache.flume.Event;
 import org.apache.flume.channel.ChannelProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.codegerm.hydra.event.SqlEventBuilder;
 import com.github.codegerm.hydra.reader.HibernateContext;
 import com.github.codegerm.hydra.reader.HibernateReader;
 import com.github.codegerm.hydra.writer.AvroWriter;
-import com.github.codegerm.hydra.writer.CsvWriter;
 
 
 public class HibernateHandler extends AbstractHandler {

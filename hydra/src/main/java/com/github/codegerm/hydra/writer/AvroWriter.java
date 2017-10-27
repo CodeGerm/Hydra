@@ -1,6 +1,5 @@
 package com.github.codegerm.hydra.writer;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +10,7 @@ import org.apache.flume.channel.ChannelProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.codegerm.hydra.event.EventBuilder;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
 
 public class AvroWriter implements RecordWriter{
@@ -18,7 +18,6 @@ public class AvroWriter implements RecordWriter{
 	private static final Logger LOG = LoggerFactory.getLogger(AvroWriter.class);
 	private ChannelProcessor processor;
 	private String entitySchema;
-	private String entityName;
 	private List<Event> events = new ArrayList<>();
 	public static final String WRITER_TYPE = "avro";
 	private Map<String, String> header;
@@ -27,10 +26,10 @@ public class AvroWriter implements RecordWriter{
 		this.processor = processor;
 		this.entitySchema = entitySchema;
 		header = new HashMap<String, String>();
-		header.put(WRITER_TYPE_KEY, WRITER_TYPE);
+		header.put(EventBuilder.WRITER_TYPE_KEY, WRITER_TYPE);
 		String entityName = AvroRecordUtil.getSchemaName(entitySchema);
 		if(entityName!=null)
-			header.put(ENTITY_NAME_KEY, entityName);
+			header.put(EventBuilder.ENTITY_NAME_KEY, entityName);
 	}
 
 	public void writeAll(List<List<Object>> records) {

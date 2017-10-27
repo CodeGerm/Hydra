@@ -12,6 +12,7 @@ import org.apache.flume.channel.ChannelProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.codegerm.hydra.event.EventBuilder;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
 import com.opencsv.CSVWriter;
 
@@ -22,15 +23,14 @@ public class CsvWriter implements RecordWriter{
 
 	private CSVWriter openCsvWriter; 
 	private Map<String, String> header;
-	private String entityName;
 	
 	public CsvWriter(ChannelProcessor processor, char separator, String entitySchema) {
 		openCsvWriter = new CSVWriter(new ChannelWriter(processor), separator);
 		header = new HashMap<String, String>();
-		header.put(WRITER_TYPE_KEY, WRITER_TYPE);
+		header.put(EventBuilder.WRITER_TYPE_KEY, WRITER_TYPE);
 		String entityName = AvroRecordUtil.getSchemaName(entitySchema);
 		if(entityName!=null)
-			header.put(ENTITY_NAME_KEY, entityName);
+			header.put(EventBuilder.ENTITY_NAME_KEY, entityName);
 	}
 	
 	@Override

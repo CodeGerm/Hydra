@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.collections.iterators.EntrySetMapIterator;
 import org.apache.flume.Context;
 import org.apache.flume.EventDeliveryException;
 import org.apache.flume.FlumeException;
@@ -95,9 +94,9 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 				taskList.add(handler);
 			}
 			List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
-			Thread.sleep(pollInterval);
-			
+			//TODO: handle exceptions in result
 			getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId));
+			Thread.sleep(pollInterval);
 			return Status.READY;
 
 		} catch (Exception e) {

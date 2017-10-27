@@ -238,10 +238,10 @@ public class TestSqlSource {
 			
 			
 			if(e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY).equals(SqlEventBuilder.EVENT_TYPE)){
-				if(e.getHeaders().get(RecordWriter.WRITER_TYPE_KEY) == null){
+				if(e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY) == null){
 					System.out.println("No writer type defined");
-				} else if(e.getHeaders().get(RecordWriter.WRITER_TYPE_KEY).equals(AvroWriter.WRITER_TYPE)){
-					String entity = e.getHeaders().get(RecordWriter.ENTITY_NAME_KEY);
+				} else if(e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY).equals(AvroWriter.WRITER_TYPE)){
+					String entity = e.getHeaders().get(EventBuilder.ENTITY_NAME_KEY);
 					String schema = entitySchemas.get(entity);
 					if(schema == null){
 						System.out.println("No schema found");
