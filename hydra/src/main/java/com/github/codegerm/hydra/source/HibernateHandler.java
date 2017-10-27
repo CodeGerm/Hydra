@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
 import com.github.codegerm.hydra.reader.HibernateContext;
 import com.github.codegerm.hydra.reader.HibernateReader;
+import com.github.codegerm.hydra.writer.AvroWriter;
 import com.github.codegerm.hydra.writer.CsvWriter;
 
 
@@ -21,7 +22,8 @@ public class HibernateHandler extends AbstractHandler {
 
 	
 	protected HibernateContext jdbcContext;
-	private CsvWriter csvWriter;
+	//private CsvWriter csvWriter;
+	private AvroWriter avroWriter;
 	private HibernateReader hibernateReader;
 	private static final String DEFAULT_STATUS_DIRECTORY = "flume/jdbcSource/status";
 	private static final Logger LOG = LoggerFactory.getLogger(HibernateHandler.class);
@@ -57,15 +59,15 @@ public class HibernateHandler extends AbstractHandler {
 		System.out.println(jdbcContext.buildQuery());
 
 		/* Instantiate the CSV Writer */
-		csvWriter = new CsvWriter(processor, ',');
-
+		//csvWriter = new CsvWriter(processor, ',', entitySchema);
+		avroWriter = new AvroWriter(processor, entitySchema);
 	}
 
 	public void close() {
 		try {
 			hibernateReader.closeSession();
-			csvWriter.close();
-		} catch (IOException e) {
+			avroWriter.close();
+		} catch (Exception e) {
 			LOG.warn("Error CSVWriter object ", e);
 		} finally {
 		}
@@ -79,12 +81,12 @@ public class HibernateHandler extends AbstractHandler {
 			List<List<Object>> result = hibernateReader.executeQuery();
 			LOG.debug(result.toString());
 			if (!result.isEmpty()) {
-				csvWriter.writeAll(jdbcContext.getAllRows(result), true);
-				csvWriter.flush();
+				avroWriter.writeAll(result);
+				avroWriter.flush();
 				jdbcContext.updateStatusFile();
 			}
 
-		} catch (IOException | InterruptedException e) {
+		} catch (Exception e) {
 			LOG.error("Error procesing row", e);
 			return false;
 		} finally {

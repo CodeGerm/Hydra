@@ -2,6 +2,7 @@ package com.github.codegerm.hydra.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.apache.avro.Schema;
@@ -16,7 +17,7 @@ import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 
-public class AvroRecordBuilder {
+public class AvroRecordUtil {
 
 	public static byte[] serialize(List<Object> result, String entitySchema) throws IOException{
 		if(result == null)
@@ -54,8 +55,16 @@ public class AvroRecordBuilder {
 		GenericRecord record = datumReader.read(null, decoder);
 		return record;
 	}
+	
+	public static String getSchemaName(String entitySchema) {
+		Schema schema = new Schema.Parser().parse(entitySchema);
+		return schema.getName();
+	}
+	
 
 	private static Object convert(Object obj){
+		if(obj.getClass().getName().equals("java.sql.Timestamp"))
+			return(((Timestamp)obj).getTime());
 		return obj;
 	}
 

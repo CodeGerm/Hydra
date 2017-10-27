@@ -6,7 +6,7 @@ import java.util.Map;
 import org.apache.flume.Event;
 import org.apache.flume.event.SimpleEvent;
 
-public class StatusEventBuilder {
+public class StatusEventBuilder implements EventBuilder {
 
 	public static final String SNAPSHOT_BEGIN_TYPE = "snapshot.begin";
 	public static final String SNAPSHOT_END_TYPE = "snapshot.end";
@@ -15,8 +15,9 @@ public class StatusEventBuilder {
 
 	public static final String STATUS_TYPE_KEY = "status.type";
 	public static final String SNAPSHOT_ID_KEY = "snapshot.id";
-	public static final String TIMESTAMP_KEY = "timestamp";
 	public static final String TABLE_KEY = "table.name";
+	
+	public static final String EVENT_TYPE = "Status.Event";
 
 	protected static Event buildStatusEvent(String statusType, String snapshotId, String table) {
 		Event event = new SimpleEvent();
@@ -25,6 +26,7 @@ public class StatusEventBuilder {
 		header.put(SNAPSHOT_ID_KEY, snapshotId);
 		header.put(STATUS_TYPE_KEY, statusType);
 		header.put(TIMESTAMP_KEY, timestamp);
+		header.put(EVENT_TYPE_KEY, EVENT_TYPE);
 		if(table!=null)
 			header.put(TABLE_KEY, table);
 		event.setHeaders(header);
