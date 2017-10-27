@@ -5,29 +5,29 @@ import java.util.List;
 
 public class ModelSchema {
 
-	private String id;
-	private List<TableSchema> tables;
+	private String name;
+	private List<EntitySchema> tables;
 	public String getId() {
-		return id;
+		return name;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void setName(String id) {
+		this.name = id;
 	}
-	public List<TableSchema> getTables() {
+	public List<EntitySchema> getTables() {
 		return tables;
 	}
-	public void setTables(List<TableSchema> tables) {
+	public void setTables(List<EntitySchema> tables) {
 		this.tables = tables;
 	}
-	public ModelSchema(String id, List<TableSchema> tables) {
+	public ModelSchema(String id, List<EntitySchema> tables) {
 		super();
-		this.id = id;
+		this.name = id;
 		this.tables = tables;
 	}
 
 	public List<String> getTableNames(){
 		List<String> tableNames = new ArrayList<String>();
-		for(TableSchema table:tables){
+		for(EntitySchema table:tables){
 			tableNames.add(table.getName());
 		}
 		return tableNames;

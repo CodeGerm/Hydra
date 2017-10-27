@@ -1,8 +1,9 @@
 package com.github.codegerm.hydra.schema;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class TableSchema {
+public class EntitySchema {
 	
 	private String name;	
 	List<ColumnSchema> columns;
@@ -18,10 +19,18 @@ public class TableSchema {
 	public void setColumns(List<ColumnSchema> columns) {
 		this.columns = columns;
 	}
-	public TableSchema(String name, List<ColumnSchema> columns) {
+	public EntitySchema(String name, List<ColumnSchema> columns) {
 		super();
 		this.name = name;
 		this.columns = columns;
+	}
+	
+	public List<String> getColumnNames(){
+		List<String> columnNames = new ArrayList<String>();
+		for(ColumnSchema column:columns){
+			columnNames.add(column.getName());
+		}
+		return columnNames;
 	}
 
 }

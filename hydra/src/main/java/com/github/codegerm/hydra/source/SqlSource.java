@@ -3,12 +3,15 @@ package com.github.codegerm.hydra.source;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.collections.iterators.EntrySetMapIterator;
 import org.apache.flume.Context;
 import org.apache.flume.EventDeliveryException;
 import org.apache.flume.FlumeException;
@@ -36,6 +39,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	private Context context;
 	private long backoffSleepIncrement;
 	private long maxBackOffSleepInterval;
+	protected Map<String, String> entitySchemas;
 
 	@Override
 	public void configure(Context context) {
@@ -59,7 +63,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 		if(!context.containsKey(SqlSourceUtil.MODEL_ID_KEY))
 			throw new FlumeException("No model id defined");
 		modelId = context.getString(SqlSourceUtil.MODEL_ID_KEY);
-		snapshotId = modelId+System.currentTimeMillis();
+		
 	}
 
 	@Override
@@ -76,14 +80,18 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 
 	@Override
 	public Status process() throws EventDeliveryException {
-		LOG.info("start processing events");
+	    snapshotId = modelId+System.currentTimeMillis();
+		LOG.info("start snapshot: " + snapshotId);
+		if(entitySchemas == null){
+			throw new FlumeException("Entity Schemas is not initiated");
+		}
 		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId));
 		try {
 
 			List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
-			for (String table : models) {
-				LOG.info("Starting worker thread for table [" + table + "]");
-				HibernateHandler handler = new HibernateHandler(snapshotId, context, getChannelProcessor(), table);
+			for (Entry<String, String> entry:entitySchemas.entrySet()) {
+				LOG.info("Starting worker thread for table [" + entry.getKey() + "]");
+				HibernateHandler handler = new HibernateHandler(snapshotId, context, getChannelProcessor(), entry.getKey(), entry.getValue());
 				taskList.add(handler);
 			}
 			List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
@@ -111,6 +119,10 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	
 	protected Boolean validateResult(){
 		return false;
+	}
+	
+	public void setEntitySchemas(Map<String, String> entitySchemas){
+		this.entitySchemas = entitySchemas;
 	}
 
 }

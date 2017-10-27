@@ -14,13 +14,14 @@ import org.slf4j.LoggerFactory;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
 import com.github.codegerm.hydra.reader.HibernateContext;
 import com.github.codegerm.hydra.reader.HibernateReader;
-import com.opencsv.CSVWriter;
+import com.github.codegerm.hydra.writer.CsvWriter;
 
-public class HibernateHandler extends SqlHandler {
+
+public class HibernateHandler extends AbstractHandler {
 
 	
 	protected HibernateContext jdbcContext;
-	private CSVWriter csvWriter;
+	private CsvWriter csvWriter;
 	private HibernateReader hibernateReader;
 	private static final String DEFAULT_STATUS_DIRECTORY = "flume/jdbcSource/status";
 	private static final Logger LOG = LoggerFactory.getLogger(HibernateHandler.class);
@@ -28,8 +29,8 @@ public class HibernateHandler extends SqlHandler {
 	
 
 
-	public HibernateHandler(String snapshotId, Context context, ChannelProcessor processor, String table) {
-		super(snapshotId, context, processor, table);
+	public HibernateHandler(String snapshotId, Context context, ChannelProcessor processor, String table, String entitySchema) {
+		super(snapshotId, context, processor, table, entitySchema);
 	}
 
 	@Override
@@ -38,7 +39,7 @@ public class HibernateHandler extends SqlHandler {
 
 		LOG.info("Reading and processing configuration values for source " + LOG.getName());
 		status_file_path = context.getString(SqlSourceUtil.STATUS_DIRECTORY_KEY, DEFAULT_STATUS_DIRECTORY);
-		String status_path = status_file_path + File.separator + table;
+		String status_path = status_file_path + File.separator + snapshotId + File.separator + table;
 
 		File status_path_dir = new File(status_path);
 		if (!status_path_dir.exists())
@@ -56,7 +57,7 @@ public class HibernateHandler extends SqlHandler {
 		System.out.println(jdbcContext.buildQuery());
 
 		/* Instantiate the CSV Writer */
-		csvWriter = new CSVWriter(new ChannelWriter(processor), ',');
+		csvWriter = new CsvWriter(processor, ',');
 
 	}
 
@@ -70,40 +71,7 @@ public class HibernateHandler extends SqlHandler {
 		}
 	}
 
-	private class ChannelWriter extends Writer {
-		private List<Event> events = new ArrayList<>();
-		private ChannelProcessor processor;
 
-		public ChannelWriter(ChannelProcessor processor) {
-			this.processor = processor;
-		}
-
-		@Override
-		public void write(char[] cbuf, int off, int len) throws IOException {
-
-			String s = new String(cbuf);
-			Event event = SqlEventBuilder.build(s.substring(off, len - 1).getBytes());
-			events.add(event);
-
-		}
-
-		@Override
-		public void flush() throws IOException {
-
-			if (events != null && !events.isEmpty()) {
-				LOG.info("Flushing: " + events.size() + " event(s): ");
-				processor.processEventBatch(events);
-			}
-
-			events.clear();
-		}
-
-		@Override
-		public void close() throws IOException {
-			flush();
-		}
-
-	}
 
 	@Override
 	public Boolean handle() {
