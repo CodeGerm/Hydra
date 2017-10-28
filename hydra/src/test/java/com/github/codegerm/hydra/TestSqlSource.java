@@ -43,6 +43,8 @@ import com.github.codegerm.hydra.schema.ModelSchema;
 import com.github.codegerm.hydra.schema.EntitySchema;
 import com.github.codegerm.hydra.source.SqlSource;
 import com.github.codegerm.hydra.source.SqlSourceUtil;
+import com.github.codegerm.hydra.task.Task;
+import com.github.codegerm.hydra.task.TaskRegister;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
 import com.github.codegerm.hydra.writer.AvroWriter;
 import com.github.codegerm.hydra.writer.CsvWriter;
@@ -56,6 +58,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestSqlSource {
+	
 	private static final Logger LOG = LoggerFactory.getLogger(TestSqlSource.class);
 
 	private static final String DB_DRIVER = "org.h2.Driver";
@@ -67,6 +70,7 @@ public class TestSqlSource {
 	private static final String DB_TABLE_2 = "COMPANY";
 	private static final String[] DB_TABLE_2_NAMES = { "Compaq", "Pan Am" };
 	private static final String SOURCE_STATUS_DIR = "flume/test/status";
+	private static final Gson gson = new Gson();
 	private Channel channel;
 	private SqlSource source;
 	private Map<String, String> entitySchemas;
@@ -113,7 +117,6 @@ public class TestSqlSource {
 		tables.add(new EntitySchema("EMPLOYEE", columns));
 		tables.add(new EntitySchema("COMPANY", columns));
 		ModelSchema model = new ModelSchema("testModel", tables);
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		System.out.println(gson.toJson(model));
 	}
 
@@ -192,27 +195,48 @@ public class TestSqlSource {
 		context.put("hibernate.connection.url", DB_CONNECTION);
 		context.put("hibernate.connection.user", DB_USER);
 		context.put("hibernate.connection.password", DB_PASSWORD);
-		context.put("table", "public." + DB_TABLE_1 + "," + "public." + DB_TABLE_2);
 		context.put("hibernate.connection.driver_class", DB_DRIVER);
 		context.put("status.file.name", "statusFile");
 		context.put("status.file.path", SOURCE_STATUS_DIR);
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
 		context.put(SqlSourceUtil.MODEL_ID_KEY, "testModel");
-
-		source.setEntitySchemas(entitySchemas);
+		context.put(SqlSourceUtil.MODE_KEY, "TASK");
+		context.put(SqlSourceUtil.MODEL_SCHEMA_KEY, gson.toJson(entitySchemas));
+		
+		//source.setEntitySchemas(entitySchemas);
 		source.configure(context);
 
 	}
 
 	@Test
-	public void runTest() {
+	public void runTaskMode() {
+		source.start();
+		Task task = new Task(entitySchemas, "testTaskMode");
+		TaskRegister.getInstance().addTask(task);
+		try {
+			source.process();
+		} catch (EventDeliveryException e2) {
+			e2.printStackTrace();
+		}
+		validateResult();
+
+	}
+	
+	//@Test
+	public void runScheduleMode() {
 		source.start();
 		try {
 			source.process();
 		} catch (EventDeliveryException e2) {
 			e2.printStackTrace();
 		}
+		validateResult();
+
+	}
+	
+	
+	private void validateResult (){
 		List<Event> channelEvents = new ArrayList<>();
 		Transaction txn = channel.getTransaction();
 		txn.begin();
@@ -265,7 +289,6 @@ public class TestSqlSource {
 			
 			
 		}
-
 	}
 
 	@After
@@ -275,7 +298,7 @@ public class TestSqlSource {
 			File sourceDir = new File(SOURCE_STATUS_DIR);
 			FileUtils.deleteDirectory(sourceDir);
 		} catch (Exception e) {
-			LOG.error("delete temp file failed: ", e);
+			LOG.error("delete temp testing files failed: ", e);
 		}
 
 	}
