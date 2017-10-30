@@ -1,9 +1,13 @@
 package com.github.codegerm.hydra.task;
 
-import java.util.Map;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+/**
+ * @author yufan.li
+ *
+ */
 public class TaskRegister {
 	
 	private static final TaskRegister instance = new  TaskRegister();
@@ -20,6 +24,9 @@ public class TaskRegister {
 		return instance;
 	}
 	
+	/**
+	 * @param task
+	 */
 	public void addTask(Task task){
 		taskQueue.add(task);
 	}

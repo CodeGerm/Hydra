@@ -13,13 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.table.TableModel;
-
-import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
-import org.apache.avro.SchemaBuilder.UnionAccumulator;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.io.FileUtils;
 import org.apache.flume.Channel;
 import org.apache.flume.ChannelSelector;
@@ -31,14 +24,12 @@ import org.apache.flume.channel.ChannelProcessor;
 import org.apache.flume.channel.MemoryChannel;
 import org.apache.flume.channel.ReplicatingChannelSelector;
 import org.apache.flume.conf.Configurables;
-import org.apache.flume.source.ExecSource;
 import org.h2.tools.DeleteDbFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.event.EventBuilder;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
-import com.github.codegerm.hydra.event.StatusEventBuilder;
 import com.github.codegerm.hydra.schema.ColumnSchema;
 import com.github.codegerm.hydra.schema.ModelSchema;
 import com.github.codegerm.hydra.schema.EntitySchema;
@@ -49,18 +40,14 @@ import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
 import com.github.codegerm.hydra.writer.AvroWriter;
-import com.github.codegerm.hydra.writer.CsvWriter;
-import com.github.codegerm.hydra.writer.RecordWriter;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestSqlSource {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(TestSqlSource.class);
 
 	private static final String DB_DRIVER = "org.h2.Driver";
@@ -75,19 +62,19 @@ public class TestSqlSource {
 	private static final Gson gson = new Gson();
 	private Channel channel;
 	private Channel eventDrivenchannel;
-	
+
 	private SqlEventDrivenSource eventDrivenSource;
 	private SqlSource source;
 	private Map<String, String> entitySchemas;
 	private Map<String, String> entitySchemas2;
 	private Map<String, String> entitySchemas3;
-	
+
 	@Before
 	public void setup() throws SQLException {
-	    DatabaseSetup();
-	    avroSchemaSetup();
-	    pollableflumeSetup();
-	    eventDrivenflumeSetup();
+		DatabaseSetup();
+		avroSchemaSetup();
+		pollableflumeSetup();
+		eventDrivenflumeSetup();
 	}
 
 	private Connection getDBConnection() {
@@ -113,9 +100,9 @@ public class TestSqlSource {
 		tableSetup(DB_TABLE_1, DB_TABLE_1_NAMES);
 		tableSetup(DB_TABLE_2, DB_TABLE_2_NAMES);
 	}
-	
+
 	@Deprecated
-	public void schemaSetup (){
+	public void schemaSetup() {
 		List<ColumnSchema> columns = new ArrayList<ColumnSchema>();
 		columns.add(new ColumnSchema("id", Integer.class.getName()));
 		columns.add(new ColumnSchema("name", String.class.getName()));
@@ -128,32 +115,32 @@ public class TestSqlSource {
 		System.out.println(gson.toJson(model));
 	}
 
-	public void avroSchemaSetup (){
+	public void avroSchemaSetup() {
 		String table1 = "Employee";
 		String schema1 = "{\"name\":\"Employee\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"date\",\"type\":\"long\"},{\"name\":\"isDeleted\",\"type\":\"boolean\"}]}";
-		
+
 		String table2 = "COMPANY";
 		String schema2 = "{\"name\":\"COMPANY\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"isDeleted\",\"type\":\"boolean\"}]}";
-		
+
 		entitySchemas = new HashMap<String, String>();
 		entitySchemas.put(table1, schema1);
 		entitySchemas.put(table2, schema2);
-		
+
 		entitySchemas2 = new HashMap<String, String>();
 		entitySchemas2.put(table1, schema1);
-		
+
 		entitySchemas3 = new HashMap<String, String>();
 		entitySchemas3.put(table2, schema2);
 	}
-	
-	
-	public void tableSetup(String tableName, String [] Values) throws SQLException{
+
+	public void tableSetup(String tableName, String[] Values) throws SQLException {
 		Connection connection = getDBConnection();
 		PreparedStatement createPreparedStatement = null;
 		PreparedStatement insertPreparedStatement = null;
 		PreparedStatement selectPreparedStatement = null;
 
-		String CreateQuery = "CREATE TABLE " + tableName + "(id int primary key, name varchar(255), date timestamp, isDeleted boolean)";
+		String CreateQuery = "CREATE TABLE " + tableName
+				+ "(id int primary key, name varchar(255), date timestamp, isDeleted boolean)";
 		String InsertQuery = "INSERT INTO " + tableName + "(id, name, date, isDeleted) values" + "(?,?,?,?)";
 		String SelectQuery = "select * from " + tableName;
 
@@ -177,7 +164,8 @@ public class TestSqlSource {
 			selectPreparedStatement = connection.prepareStatement(SelectQuery);
 			ResultSet rs = selectPreparedStatement.executeQuery();
 			while (rs.next()) {
-				LOG.info("row: [Id " + rs.getInt("id") + " Name " + rs.getString("name") + "] inserted to [" + tableName +"] table");
+				LOG.info("row: [Id " + rs.getInt("id") + " Name " + rs.getString("name") + "] inserted to [" + tableName
+						+ "] table");
 			}
 			selectPreparedStatement.close();
 
@@ -189,7 +177,7 @@ public class TestSqlSource {
 		} finally {
 			connection.close();
 		}
-		
+
 	}
 
 	public void pollableflumeSetup() {
@@ -211,18 +199,17 @@ public class TestSqlSource {
 		context.put("hibernate.connection.password", DB_PASSWORD);
 		context.put("hibernate.connection.driver_class", DB_DRIVER);
 		context.put("status.file.name", "statusFile");
-		context.put("status.file.path", SOURCE_STATUS_DIR+"/pollable");
+		context.put("status.file.path", SOURCE_STATUS_DIR + "/pollable");
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
 		context.put(SqlSourceUtil.MODEL_ID_KEY, "testModel");
 		context.put(SqlSourceUtil.MODE_KEY, "TASK");
 		context.put(SqlSourceUtil.MODEL_SCHEMA_KEY, gson.toJson(entitySchemas));
-		//source.setEntitySchemas(entitySchemas);
+		// source.setEntitySchemas(entitySchemas);
 		source.configure(context);
 
 	}
-	
-	
+
 	public void eventDrivenflumeSetup() {
 		eventDrivenSource = new SqlEventDrivenSource();
 		eventDrivenchannel = new MemoryChannel();
@@ -242,16 +229,16 @@ public class TestSqlSource {
 		context.put("hibernate.connection.password", DB_PASSWORD);
 		context.put("hibernate.connection.driver_class", DB_DRIVER);
 		context.put("status.file.name", "statusFile");
-		context.put("status.file.path", SOURCE_STATUS_DIR+"/eventdriven");
+		context.put("status.file.path", SOURCE_STATUS_DIR + "/eventdriven");
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
 		eventDrivenSource.configure(context);
 
 	}
 
-    //@Test
+	// @Test
 	public void runTaskMode() {
-    	System.out.println("Testing pollable sql source in task mode: ");
+		System.out.println("Testing pollable sql source in task mode: ");
 		source.start();
 		Task task = new Task(entitySchemas, "testTaskMode");
 		TaskRegister.getInstance().addTask(task);
@@ -263,8 +250,8 @@ public class TestSqlSource {
 		validateResult(channel);
 
 	}
-	
-    //@Test
+
+	// @Test
 	public void runScheduleMode() {
 		source.start();
 		try {
@@ -275,8 +262,7 @@ public class TestSqlSource {
 		validateResult(channel);
 
 	}
-	
-	
+
 	@Test
 	public void runEventDrivenSource() {
 		System.out.println("Testing event driven sql source: ");
@@ -299,8 +285,8 @@ public class TestSqlSource {
 		validateResult(eventDrivenchannel);
 
 	}
-	
-	private void validateResult (Channel channel){
+
+	private void validateResult(Channel channel) {
 		List<Event> channelEvents = new ArrayList<>();
 		Transaction txn = channel.getTransaction();
 		txn.begin();
@@ -323,13 +309,14 @@ public class TestSqlSource {
 		}
 
 		for (Event e : channelEvents) {
-			if(e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY)!=null && e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY).equals(SqlEventBuilder.EVENT_TYPE)){
-				if(e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY) == null){
+			if (e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY) != null
+					&& e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY).equals(SqlEventBuilder.EVENT_TYPE)) {
+				if (e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY) == null) {
 					System.out.println("No writer type defined");
-				} else if(e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY).equals(AvroWriter.WRITER_TYPE)){
+				} else if (e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY).equals(AvroWriter.WRITER_TYPE)) {
 					String entity = e.getHeaders().get(EventBuilder.ENTITY_NAME_KEY);
 					String schema = entitySchemas.get(entity);
-					if(schema == null){
+					if (schema == null) {
 						System.out.println("No schema found");
 						continue;
 					}
@@ -347,9 +334,7 @@ public class TestSqlSource {
 				String str = new String(e.getBody(), Charsets.UTF_8);
 				System.out.println("Event header: " + e.getHeaders() + ", Event body: " + str);
 			}
-				
-			
-			
+
 		}
 	}
 
@@ -364,8 +349,5 @@ public class TestSqlSource {
 		}
 
 	}
-	
 
 }
-
-

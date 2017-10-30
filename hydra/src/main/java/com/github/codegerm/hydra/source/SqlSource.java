@@ -30,6 +30,10 @@ import com.github.codegerm.hydra.task.TaskRegister;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+/**
+ * @author yufan.li
+ *
+ */
 public class SqlSource extends AbstractSource implements Configurable, PollableSource {
 
 	private ExecutorService executor;
@@ -45,6 +49,9 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	protected Map<String, String> entitySchemas;
 	private MODE mode;
 
+	/* (non-Javadoc)
+	 * @see org.apache.flume.conf.Configurable#configure(org.apache.flume.Context)
+	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public void configure(Context context) {
@@ -86,11 +93,17 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.flume.source.AbstractSource#start()
+	 */
 	@Override
 	public void start() {
 		super.start();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.flume.source.AbstractSource#stop()
+	 */
 	@Override
 	public void stop() {
 		LOG.info("Stopping SqlSource");
@@ -98,6 +111,9 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 		executor.shutdownNow();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.flume.PollableSource#process()
+	 */
 	@Override
 	public Status process() throws EventDeliveryException {
 		if(mode.equals(MODE.SCHEDULE)){
@@ -126,6 +142,10 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	}
 	
 
+	/**
+	 * @return
+	 * @throws EventDeliveryException
+	 */
 	public Status execute() throws EventDeliveryException {
 		LOG.info("start snapshot: " + snapshotId);
 		if(entitySchemas == null){

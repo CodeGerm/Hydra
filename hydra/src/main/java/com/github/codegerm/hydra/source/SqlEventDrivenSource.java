@@ -24,6 +24,10 @@ import com.github.codegerm.hydra.task.Result;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
 
+/**
+ * @author yufan.li
+ *
+ */
 public class SqlEventDrivenSource extends AbstractSource implements EventDrivenSource, Configurable {
 
 	private ExecutorService executor;
@@ -33,6 +37,9 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 	private long timeout;
 	private Context context;
 
+	/* (non-Javadoc)
+	 * @see org.apache.flume.conf.Configurable#configure(org.apache.flume.Context)
+	 */
 	@Override
 	public void configure(Context context) {
 		LOG.info("Start configuring SqlEventDrivenSource");
@@ -47,6 +54,9 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.flume.source.AbstractSource#start()
+	 */
 	@Override
 	public synchronized void start() {
 		runner = new SqlRunnable();
@@ -54,6 +64,9 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 		super.start();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.apache.flume.source.AbstractSource#stop()
+	 */
 	@Override
 	public synchronized void stop() {
 		
