@@ -28,6 +28,10 @@ public class TaskRegister {
 		return taskQueue.poll();
 	}
 	
+	public Task getTaskByTake() throws InterruptedException{
+		return taskQueue.take();
+	}
+	
 	public void addResult(Result result){
 		resultQueue.add(result);
 	}

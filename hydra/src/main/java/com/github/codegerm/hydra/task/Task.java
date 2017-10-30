@@ -22,5 +22,9 @@ public class Task {
 		this.entitySchemas = entitySchemas;
 		this.modelId = modelId;
 	}
+	@Override
+	public String toString() {
+		return "Task [entitySchemas=" + entitySchemas + ", modelId=" + modelId + "]";
+	}
 	
 }

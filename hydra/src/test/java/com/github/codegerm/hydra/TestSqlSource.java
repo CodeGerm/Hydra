@@ -31,6 +31,7 @@ import org.apache.flume.channel.ChannelProcessor;
 import org.apache.flume.channel.MemoryChannel;
 import org.apache.flume.channel.ReplicatingChannelSelector;
 import org.apache.flume.conf.Configurables;
+import org.apache.flume.source.ExecSource;
 import org.h2.tools.DeleteDbFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ import com.github.codegerm.hydra.event.StatusEventBuilder;
 import com.github.codegerm.hydra.schema.ColumnSchema;
 import com.github.codegerm.hydra.schema.ModelSchema;
 import com.github.codegerm.hydra.schema.EntitySchema;
+import com.github.codegerm.hydra.source.SqlEventDrivenSource;
 import com.github.codegerm.hydra.source.SqlSource;
 import com.github.codegerm.hydra.source.SqlSourceUtil;
 import com.github.codegerm.hydra.task.Task;
@@ -72,14 +74,20 @@ public class TestSqlSource {
 	private static final String SOURCE_STATUS_DIR = "flume/test/status";
 	private static final Gson gson = new Gson();
 	private Channel channel;
+	private Channel eventDrivenchannel;
+	
+	private SqlEventDrivenSource eventDrivenSource;
 	private SqlSource source;
 	private Map<String, String> entitySchemas;
+	private Map<String, String> entitySchemas2;
+	private Map<String, String> entitySchemas3;
 	
 	@Before
 	public void setup() throws SQLException {
 	    DatabaseSetup();
 	    avroSchemaSetup();
-		flumeSetup();
+	    pollableflumeSetup();
+	    eventDrivenflumeSetup();
 	}
 
 	private Connection getDBConnection() {
@@ -130,6 +138,12 @@ public class TestSqlSource {
 		entitySchemas = new HashMap<String, String>();
 		entitySchemas.put(table1, schema1);
 		entitySchemas.put(table2, schema2);
+		
+		entitySchemas2 = new HashMap<String, String>();
+		entitySchemas2.put(table1, schema1);
+		
+		entitySchemas3 = new HashMap<String, String>();
+		entitySchemas3.put(table2, schema2);
 	}
 	
 	
@@ -178,7 +192,7 @@ public class TestSqlSource {
 		
 	}
 
-	public void flumeSetup() {
+	public void pollableflumeSetup() {
 		source = new SqlSource();
 		channel = new MemoryChannel();
 
@@ -197,20 +211,47 @@ public class TestSqlSource {
 		context.put("hibernate.connection.password", DB_PASSWORD);
 		context.put("hibernate.connection.driver_class", DB_DRIVER);
 		context.put("status.file.name", "statusFile");
-		context.put("status.file.path", SOURCE_STATUS_DIR);
+		context.put("status.file.path", SOURCE_STATUS_DIR+"/pollable");
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
 		context.put(SqlSourceUtil.MODEL_ID_KEY, "testModel");
 		context.put(SqlSourceUtil.MODE_KEY, "TASK");
 		context.put(SqlSourceUtil.MODEL_SCHEMA_KEY, gson.toJson(entitySchemas));
-		
 		//source.setEntitySchemas(entitySchemas);
 		source.configure(context);
 
 	}
+	
+	
+	public void eventDrivenflumeSetup() {
+		eventDrivenSource = new SqlEventDrivenSource();
+		eventDrivenchannel = new MemoryChannel();
 
-	@Test
+		Configurables.configure(eventDrivenchannel, new Context());
+
+		List<Channel> channels = new ArrayList<>();
+		channels.add(eventDrivenchannel);
+
+		ChannelSelector rcs = new ReplicatingChannelSelector();
+		rcs.setChannels(channels);
+
+		eventDrivenSource.setChannelProcessor(new ChannelProcessor(rcs));
+		Context context = new Context();
+		context.put("hibernate.connection.url", DB_CONNECTION);
+		context.put("hibernate.connection.user", DB_USER);
+		context.put("hibernate.connection.password", DB_PASSWORD);
+		context.put("hibernate.connection.driver_class", DB_DRIVER);
+		context.put("status.file.name", "statusFile");
+		context.put("status.file.path", SOURCE_STATUS_DIR+"/eventdriven");
+		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
+		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
+		eventDrivenSource.configure(context);
+
+	}
+
+    //@Test
 	public void runTaskMode() {
+    	System.out.println("Testing pollable sql source in task mode: ");
 		source.start();
 		Task task = new Task(entitySchemas, "testTaskMode");
 		TaskRegister.getInstance().addTask(task);
@@ -219,11 +260,11 @@ public class TestSqlSource {
 		} catch (EventDeliveryException e2) {
 			e2.printStackTrace();
 		}
-		validateResult();
+		validateResult(channel);
 
 	}
 	
-	//@Test
+    //@Test
 	public void runScheduleMode() {
 		source.start();
 		try {
@@ -231,12 +272,35 @@ public class TestSqlSource {
 		} catch (EventDeliveryException e2) {
 			e2.printStackTrace();
 		}
-		validateResult();
+		validateResult(channel);
 
 	}
 	
 	
-	private void validateResult (){
+	@Test
+	public void runEventDrivenSource() {
+		System.out.println("Testing event driven sql source: ");
+		eventDrivenSource.start();
+		Task task = new Task(entitySchemas3, "testTaskMode");
+		TaskRegister.getInstance().addTask(task);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		task = new Task(entitySchemas2, "testTaskMode");
+		TaskRegister.getInstance().addTask(task);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		source.stop();
+		validateResult(eventDrivenchannel);
+
+	}
+	
+	private void validateResult (Channel channel){
 		List<Event> channelEvents = new ArrayList<>();
 		Transaction txn = channel.getTransaction();
 		txn.begin();
@@ -259,9 +323,7 @@ public class TestSqlSource {
 		}
 
 		for (Event e : channelEvents) {
-			
-			
-			if(e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY).equals(SqlEventBuilder.EVENT_TYPE)){
+			if(e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY)!=null && e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY).equals(SqlEventBuilder.EVENT_TYPE)){
 				if(e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY) == null){
 					System.out.println("No writer type defined");
 				} else if(e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY).equals(AvroWriter.WRITER_TYPE)){

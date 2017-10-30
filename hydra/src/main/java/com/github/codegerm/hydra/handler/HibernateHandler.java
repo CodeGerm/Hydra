@@ -1,4 +1,4 @@
-package com.github.codegerm.hydra.source;
+package com.github.codegerm.hydra.handler;
 
 import java.io.File;
 import java.util.List;
@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.reader.HibernateContext;
 import com.github.codegerm.hydra.reader.HibernateReader;
+import com.github.codegerm.hydra.source.SqlSourceUtil;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
 import com.github.codegerm.hydra.writer.AvroWriter;
 

@@ -22,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.event.StatusEventBuilder;
+import com.github.codegerm.hydra.handler.HibernateHandler;
 import com.github.codegerm.hydra.source.SqlSourceUtil.MODE;
+import com.github.codegerm.hydra.task.Result;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
 import com.google.gson.Gson;
@@ -142,7 +144,8 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			//TODO: handle exceptions in result
 			getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId));
 			if(mode.equals(MODE.TASK)){
-				
+				Result runningResult = new Result(snapshotId, result);
+				TaskRegister.getInstance().addResult(runningResult);
 			} else
 				Thread.sleep(pollInterval);
 			return Status.READY;
