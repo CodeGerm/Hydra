@@ -8,9 +8,8 @@ import org.apache.flume.Context;
 import org.apache.flume.channel.ChannelProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.github.codegerm.hydra.reader.HibernateContext;
-import com.github.codegerm.hydra.reader.HibernateReader;
+import org.keedio.flume.source.HibernateContext;
+import org.keedio.flume.source.HibernateReader;
 import com.github.codegerm.hydra.source.SqlSourceUtil;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
 import com.github.codegerm.hydra.writer.AvroWriter;

@@ -1,4 +1,4 @@
-package com.github.codegerm.hydra.reader;
+package org.keedio.flume.source;
 
 import org.keedio.flume.source.SQLSourceHelper;
 import org.apache.flume.Context;
@@ -19,6 +19,7 @@ public class HibernateContext extends SQLSourceHelper {
 
 
 	public int getPagedRows() {
+		
 		return pagedRows;
 	}
 
