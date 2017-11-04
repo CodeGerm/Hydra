@@ -7,6 +7,7 @@ Hydra is a project that can be used as a flume (https://flume.apache.org/) sourc
 - A task based trigger condition which allows invoking source programmatically
 
 ## Strcture
+![Alt text](doc/structure.png?raw=true "Structure")
 
 ## Trigger condition
 There are two sources: <b>SqlEventDrivenSource</b> and <b>SqlSource</b> and two running mode: <b>schedule</b> and <b>task</b>. SqlEventDrivenSource only supports task mode.
