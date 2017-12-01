@@ -13,8 +13,8 @@ public class StatusEventBuilder implements EventBuilder {
 	public static final String TABLE_BEGIN_TYPE = "table.begin";
 	public static final String TABLE_END_TYPE = "table.end";
 
-	public static final String STATUS_TYPE_KEY = "status.type";
-	public static final String SNAPSHOT_ID_KEY = "snapshot.id";
+	public static final String STATUS_TYPE_KEY = "statusType";
+	public static final String SNAPSHOT_ID_KEY = "snapshotId";
 	
 	public static final String EVENT_TYPE = "Status.Event";
 

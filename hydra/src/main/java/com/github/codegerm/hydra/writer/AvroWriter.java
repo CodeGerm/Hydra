@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.event.EventBuilder;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
+import com.github.codegerm.hydra.event.StatusEventBuilder;
 
 /**
  * @author yufan.li
@@ -30,10 +31,12 @@ public class AvroWriter implements RecordWriter{
 	 * @param processor
 	 * @param entitySchema
 	 */
-	public AvroWriter(ChannelProcessor processor, String entitySchema) {
+	public AvroWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
 		this.processor = processor;
 		this.entitySchema = entitySchema;
+		
 		header = new HashMap<String, String>();
+		header.put(StatusEventBuilder.SNAPSHOT_ID_KEY, snapshotId);
 		header.put(EventBuilder.WRITER_TYPE_KEY, WRITER_TYPE);
 		String entityName = AvroRecordUtil.getSchemaName(entitySchema);
 		if(entityName!=null)

@@ -63,7 +63,7 @@ public class HibernateHandler extends AbstractHandler {
 
 		/* Instantiate the CSV Writer */
 		//csvWriter = new CsvWriter(processor, ',', entitySchema);
-		avroWriter = new AvroWriter(processor, entitySchema);
+		avroWriter = new AvroWriter(processor, snapshotId, entitySchema);
 	}
 
 	public void close() {
