@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class PollableTrigger extends AbstractTaskTrigger {
 
-	public static final String KEY_INIT_DELAY = "initDelay";
-	public static final String KEY_POLL_INTERVAL = "pollInterval";
+	public static final String KEY_INIT_DELAY = "trigger.initDelay";
+	public static final String KEY_POLL_INTERVAL = "trigger.pollInterval";
 
 	public static final long DEFAULT_INIT_DELAY = 1000;
 	public static final long DEFAULT_POLL_INTERVAL = 5000;
