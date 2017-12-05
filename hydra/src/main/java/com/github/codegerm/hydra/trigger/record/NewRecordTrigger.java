@@ -1,10 +1,9 @@
 package com.github.codegerm.hydra.trigger.record;
 
-import java.io.File;
-
 import org.apache.flume.Context;
 
 import com.github.codegerm.hydra.trigger.PollableTrigger;
+import com.google.common.base.Preconditions;
 
 public class NewRecordTrigger extends PollableTrigger {
 
@@ -26,9 +25,8 @@ public class NewRecordTrigger extends PollableTrigger {
 		this.tableName = context.getString(KEY_TABLE_NAME);
 		this.primaryKeyName = context.getString(KEY_PRIMARY_KEY_NAME);
 
-		this.statusFile = new File("tmp/status.file").getAbsolutePath();
-		this.tableName = "actor2";
-		this.primaryKeyName = "actor_id";
+		Preconditions.checkNotNull(statusFile, "Status file is not defined");
+		Preconditions.checkNotNull(tableName, "Table name is not defined");
 
 		this.recordMonitor = new NewRecordMonitor(context, tableName, primaryKeyName, null);
 	}

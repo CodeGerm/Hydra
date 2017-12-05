@@ -5,6 +5,8 @@ import org.hibernate.SQLQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
+
 /**
  * Only support if the table record is increased only
  */
@@ -26,15 +28,18 @@ public class NewRecordMonitor extends RecordMonitor {
 					+ "]");
 
 			// Get primary key value
-			query = session.createSQLQuery(buildPKSQL());
-			query.setFirstResult(count - 1);
-			query.setMaxResults(1);
-			Object pkValue = query.uniqueResult();
-			String pkString = pkValue == null ? "" : pkValue.toString();
+			if (!Strings.isNullOrEmpty(primaryKeyName)) {
+				query = session.createSQLQuery(buildPKSQL());
+				query.setFirstResult(count - 1);
+				query.setMaxResults(1);
+				Object pkValue = query.uniqueResult();
+				String pkString = pkValue == null ? "" : pkValue.toString();
+				lastStatus.setPrimaryKeyValue(pkString);
+			}
 
 			lastStatus.setTriggered(true);
 			lastStatus.setRecordCount(count);
-			lastStatus.setPrimaryKeyValue(pkString);
+
 			return lastStatus;
 		} else if (count < lastStatus.getRecordCount()) {
 			logger.warn("Detected record decreased, this trigger may not support it.");
