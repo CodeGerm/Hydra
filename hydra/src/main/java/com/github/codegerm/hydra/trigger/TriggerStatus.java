@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +27,25 @@ public class TriggerStatus {
 
 	public void load(String fileName) {
 		Properties prop = new Properties();
-		FileInputStream fis = null;
-		try {
-			fis = new FileInputStream(new File(fileName));
-			prop.load(fis);
-			readProperties(prop);
-		} catch (IOException e) {
-			logger.warn("Cannot read status file", e);
-		} finally {
-			IOUtils.closeQuietly(fis);
+		File file = new File(fileName);
+		if (file.exists()) {
+			FileInputStream fis = null;
+			try {
+				fis = new FileInputStream(file);
+				prop.load(fis);
+				readProperties(prop);
+			} catch (IOException e) {
+				logger.warn("Cannot read status file", e);
+			} finally {
+				IOUtils.closeQuietly(fis);
+			}
+		} else {
+			logger.info("Status file is not found, create a new one.");
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				logger.warn("Cannot create status file", e);
+			}
 		}
 	}
 
@@ -42,9 +53,18 @@ public class TriggerStatus {
 		Properties prop = new Properties();
 		writeProperties(prop);
 
+		File file = new File(fileName);
+		if (!file.exists()) {
+			try {
+				FileUtils.forceMkdir(file.getParentFile());
+				file.createNewFile();
+			} catch (IOException e) {
+				logger.warn("Cannot create status file", e);
+			}
+		}
 		FileOutputStream fos = null;
 		try {
-			fos = new FileOutputStream(new File(fileName));
+			fos = new FileOutputStream(file);
 			prop.store(fos, null);
 		} catch (IOException e) {
 			logger.warn("Cannot write status file", e);

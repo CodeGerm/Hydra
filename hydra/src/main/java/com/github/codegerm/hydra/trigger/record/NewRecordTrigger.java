@@ -7,9 +7,9 @@ import com.google.common.base.Preconditions;
 
 public class NewRecordTrigger extends PollableTrigger {
 
-	public static final String KEY_TRIGGER_STATUS_FILE = "statusFile";
-	public static final String KEY_TABLE_NAME = "tableName";
-	public static final String KEY_PRIMARY_KEY_NAME = "primaryKeyName";
+	public static final String KEY_TRIGGER_STATUS_FILE = "trigger.statusFile";
+	public static final String KEY_TABLE_NAME = "trigger.tableName";
+	public static final String KEY_PRIMARY_KEY_NAME = "trigger.primaryKeyName";
 
 	private String statusFile;
 	private String tableName;
