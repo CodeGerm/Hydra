@@ -23,6 +23,8 @@ import com.github.codegerm.hydra.handler.HibernateHandler;
 import com.github.codegerm.hydra.task.Result;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
+import com.github.codegerm.hydra.trigger.TaskTrigger;
+import com.github.codegerm.hydra.trigger.TriggerFactory;
 
 /**
  * @author yufan.li
@@ -36,9 +38,13 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 	private SqlRunnable runner;
 	private long timeout;
 	private Context context;
+	private TaskTrigger taskTrigger;
 
-	/* (non-Javadoc)
-	 * @see org.apache.flume.conf.Configurable#configure(org.apache.flume.Context)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.apache.flume.conf.Configurable#configure(org.apache.flume.Context)
 	 */
 	@Override
 	public void configure(Context context) {
@@ -52,37 +58,54 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 
 		mainExecutor = Executors.newSingleThreadExecutor();
 
+		taskTrigger = TriggerFactory.createTrigger(context.getString(SqlSourceUtil.TRIGGER_TYPE_KEY));
+		if (taskTrigger != null) {
+			taskTrigger.configure(context);
+		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.apache.flume.source.AbstractSource#start()
 	 */
 	@Override
 	public synchronized void start() {
 		runner = new SqlRunnable();
 		mainExecutor.execute(runner);
+
+		if (taskTrigger != null) {
+			taskTrigger.start();
+		}
 		super.start();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.apache.flume.source.AbstractSource#stop()
 	 */
 	@Override
 	public synchronized void stop() {
-		
-		executor.shutdown();
+		if (taskTrigger != null) {
+			taskTrigger.stop();
+		}
 
+		executor.shutdown();
 		while (!executor.isTerminated()) {
 			LOG.debug("Waiting for exec executor service to stop");
 			try {
 				executor.awaitTermination(500, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
-				LOG.debug("Interrupted while waiting for exec executor service "
-						+ "to stop. Just exiting.");
+				LOG.debug("Interrupted while waiting for exec executor service " + "to stop. Just exiting.");
 				Thread.currentThread().interrupt();
 			}
 		}
 		super.stop();
+	}
+	
+	public TaskTrigger getTaskTrigger() {
+		return taskTrigger;
 	}
 
 	private class SqlRunnable implements Runnable {
@@ -143,9 +166,6 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 				return false;
 			}
 		}
-
-	
-
 
 	}
 

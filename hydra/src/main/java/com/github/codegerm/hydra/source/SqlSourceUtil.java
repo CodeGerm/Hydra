@@ -18,6 +18,7 @@ public class SqlSourceUtil {
 	public static final String MODEL_ID_KEY = "model.id";
 	public static final String MODEL_SCHEMA_KEY = "model.schema";
 	public static final String MODE_KEY = "mode";
+	public static final String TRIGGER_TYPE_KEY = "trigger.type";
 
 	
 	//default values
