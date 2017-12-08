@@ -25,13 +25,9 @@ public abstract class RecordMonitor {
 	protected Configuration config;
 	protected Session session;
 
-	protected String tableName;
-	protected String primaryKeyName;
 	protected RecordStatus lastStatus;
 
-	public RecordMonitor(Context context, String tableName, String primaryKeyName, RecordStatus lastStatus) {
-		this.tableName = tableName;
-		this.primaryKeyName = primaryKeyName;
+	public RecordMonitor(Context context, RecordStatus lastStatus) {
 		this.lastStatus = lastStatus;
 
 		config = buildHibernateConfig(context);
