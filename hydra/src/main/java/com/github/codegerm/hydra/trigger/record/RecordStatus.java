@@ -6,49 +6,36 @@ import com.github.codegerm.hydra.trigger.TriggerStatus;
 
 public class RecordStatus extends TriggerStatus {
 
-	protected static final String KEY_RECORD_COUNT = "record.count";
-	protected static final String KEY_PRIMARY_KEY_VALUE = "record.pk.value";
+	protected static final String KEY_RECORD_COUNT = "record.value";
 
-	protected int recordCount;
-	protected String primaryKeyValue;
+	protected String recordValue;
 
 	public RecordStatus() {
 	}
 
-	public RecordStatus(boolean triggered, int recordCount, String primaryKeyValue) {
+	public RecordStatus(boolean triggered, String recordValue) {
 		this.triggered = triggered;
-		this.recordCount = recordCount;
-		this.primaryKeyValue = primaryKeyValue;
-	}
-
-	public int getRecordCount() {
-		return recordCount;
-	}
-
-	public void setRecordCount(int recordCount) {
-		this.recordCount = recordCount;
-	}
-
-	public String getPrimaryKeyValue() {
-		return primaryKeyValue;
-	}
-
-	public void setPrimaryKeyValue(String primaryKeyValue) {
-		this.primaryKeyValue = primaryKeyValue;
+		this.recordValue = recordValue;
 	}
 
 	@Override
 	protected void readProperties(Properties prop) {
 		super.readProperties(prop);
-		this.recordCount = Integer.parseInt(prop.getProperty(KEY_RECORD_COUNT, "0"));
-		this.primaryKeyValue = prop.getProperty(KEY_PRIMARY_KEY_VALUE);
+		this.recordValue = prop.getProperty(KEY_RECORD_COUNT);
 	}
 
 	@Override
 	protected void writeProperties(Properties prop) {
 		super.writeProperties(prop);
-		prop.setProperty(KEY_RECORD_COUNT, Integer.toString(recordCount));
-		prop.setProperty(KEY_PRIMARY_KEY_VALUE, primaryKeyValue == null ? "" : primaryKeyValue);
+		prop.setProperty(KEY_RECORD_COUNT, recordValue == null ? "" : recordValue);
+	}
+
+	public String getRecordValue() {
+		return recordValue;
+	}
+
+	public void setRecordValue(String recordValue) {
+		this.recordValue = recordValue;
 	}
 
 }
