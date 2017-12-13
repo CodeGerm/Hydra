@@ -202,7 +202,7 @@ public class TestSqlSource {
 		context.put("status.file.path", SOURCE_STATUS_DIR + "/pollable");
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
-		context.put(SqlSourceUtil.MODEL_ID_KEY, "testModel");
+		context.put(SqlSourceUtil.MODEL_NAME_KEY, "testModel");
 		context.put(SqlSourceUtil.MODE_KEY, "TASK");
 		context.put(SqlSourceUtil.MODEL_SCHEMA_KEY, gson.toJson(entitySchemas));
 		// source.setEntitySchemas(entitySchemas);

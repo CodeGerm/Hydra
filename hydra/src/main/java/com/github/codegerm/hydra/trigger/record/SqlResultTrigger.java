@@ -1,6 +1,8 @@
 package com.github.codegerm.hydra.trigger.record;
 
 import org.apache.flume.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.trigger.PollableTrigger;
 import com.google.common.base.Preconditions;
@@ -9,6 +11,8 @@ public class SqlResultTrigger extends PollableTrigger {
 
 	public static final String KEY_TRIGGER_STATUS_FILE = "trigger.statusFile";
 	public static final String KEY_TRIGGER_PARAMS = "trigger.parameters";
+
+	private static final Logger logger = LoggerFactory.getLogger(SqlResultTrigger.class);
 
 	private String statusFile;
 	private String sql;
@@ -26,6 +30,7 @@ public class SqlResultTrigger extends PollableTrigger {
 		Preconditions.checkNotNull(sql, "SQL is not defined");
 
 		this.recordMonitor = new SqlResultMonitor(context, sql, null);
+		logger.info("Sql result trigger configured: sql=" + sql);
 	}
 
 	@Override
@@ -33,22 +38,29 @@ public class SqlResultTrigger extends PollableTrigger {
 		RecordStatus status = new RecordStatus();
 		status.load(statusFile);
 		recordMonitor.setInitialStatus(status);
-		recordMonitor.establishSession();
+		boolean result = recordMonitor.establishSession();
+		if (!result) {
+			recordMonitor = null;
+		}
 		super.start();
 	}
 
 	@Override
 	public void stop() {
-		recordMonitor.closeSession();
+		if (recordMonitor != null) {
+			recordMonitor.closeSession();
+		}
 		super.stop();
 	}
 
 	@Override
 	protected void process() {
-		RecordStatus status = recordMonitor.checkRecord();
-		status.save(statusFile);
-		if (status.isTriggered()) {
-			triggerActions();
+		if (recordMonitor != null) {
+			RecordStatus status = recordMonitor.checkRecord();
+			status.save(statusFile);
+			if (status.isTriggered()) {
+				triggerActions();
+			}
 		}
 	}
 

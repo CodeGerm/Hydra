@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.flume.Context;
 import org.hibernate.CacheMode;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -19,8 +20,7 @@ public abstract class RecordMonitor {
 
 	private static final Logger logger = LoggerFactory.getLogger(RecordMonitor.class);
 
-	protected static SessionFactory factory;
-
+	protected SessionFactory factory;
 	protected ServiceRegistry serviceRegistry;
 	protected Configuration config;
 	protected Session session;
@@ -40,13 +40,23 @@ public abstract class RecordMonitor {
 		this.lastStatus = status;
 	}
 
-	public void establishSession() {
+	public boolean establishSession() {
 		logger.info("Opening hibernate session");
-		serviceRegistry = new StandardServiceRegistryBuilder().applySettings(config.getProperties()).build();
-		factory = config.buildSessionFactory(serviceRegistry);
-		session = factory.openSession();
-		session.setCacheMode(CacheMode.IGNORE);
-		session.setDefaultReadOnly(true);
+		try {
+			if (serviceRegistry == null) {
+				serviceRegistry = new StandardServiceRegistryBuilder().applySettings(config.getProperties()).build();
+			}
+			if (factory == null) {
+				factory = config.buildSessionFactory(serviceRegistry);
+			}
+			session = factory.openSession();
+			session.setCacheMode(CacheMode.IGNORE);
+			session.setDefaultReadOnly(true);
+			return true;
+		} catch (HibernateException ex) {
+			logger.warn("Set up hibernate failed", ex);
+			return false;
+		}
 	}
 
 	public void closeSession() {

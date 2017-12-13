@@ -29,10 +29,10 @@ public class SqlResultMonitor extends RecordMonitor {
 			for (Object row : result) {
 				if (row instanceof Object[]) {
 					for (Object cell : (Object[]) row) {
-						valueBuilder.append(cell);
+						valueBuilder.append(convertValue(cell));
 					}
 				} else {
-					valueBuilder.append(row);
+					valueBuilder.append(convertValue(row));
 				}
 
 			}
@@ -43,12 +43,17 @@ public class SqlResultMonitor extends RecordMonitor {
 
 		String newValue = valueBuilder.toString();
 		if (!StringUtils.equals(lastStatus.getRecordValue(), newValue)) {
+			logger.info("Detected SQL result changed: from=" + lastStatus.getRecordValue() + ", to=" + newValue);
 			lastStatus.setRecordValue(newValue);
 			lastStatus.setTriggered(true);
 		} else {
 			lastStatus.setTriggered(false);
 		}
 		return lastStatus;
+	}
+
+	private String convertValue(Object value) {
+		return value.toString();
 	}
 
 }

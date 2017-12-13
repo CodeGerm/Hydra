@@ -15,7 +15,7 @@ public class SqlSourceUtil {
 	public static final String POLL_INTERVAL_KEY = "poll.interval";
 	public static final String TABLE_KEY = "table";
 	public static final String TIMEOUT_KEY = "timeout";
-	public static final String MODEL_ID_KEY = "model.id";
+	public static final String MODEL_NAME_KEY = "model.name";
 	public static final String MODEL_SCHEMA_KEY = "model.schema";
 	public static final String MODE_KEY = "mode";
 	public static final String TRIGGER_TYPE_KEY = "trigger.type";
