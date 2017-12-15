@@ -321,8 +321,13 @@ public class TestSqlSource {
 						continue;
 					}
 					try {
-						String str = AvroRecordUtil.deserializeFromJson(e.getBody(), schema).toString();
-						System.out.println("Event header: " + e.getHeaders() + ", Event body: " + str);
+						String body = new String(e.getBody(), "UTF-8");
+						System.out.println("Event header: " + e.getHeaders() + ", Event body: " + body);
+						List<String> records = new Gson().fromJson(body, List.class);
+						for (String record : records) {
+							String str = AvroRecordUtil.deserializeFromJson(record, schema).toString();
+							System.out.println("Event item: " + str);
+						}
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}

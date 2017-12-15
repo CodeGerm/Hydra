@@ -22,9 +22,23 @@ public class AvroBinaryWriter extends AbstractAvroWriter {
 	}
 
 	@Override
-	protected byte[] serializeEvent(List<Object> record, String schema) {
+	protected int getEventBatchSize() {
+		return 1;
+	}
+
+	@Override
+	protected byte[] serializeEvents(List<List<Object>> records, String schema) {
+		if (records.size() == 1) {
+			return serializeEvent(records.get(0), schema);
+		} else {
+			LOG.warn("Avro binary writer doesn't support event batch");
+			return null;
+		}
+	}
+
+	private byte[] serializeEvent(List<Object> record, String schema) {
 		try {
-			return AvroRecordUtil.serializeToBinary(record, entitySchema);
+			return AvroRecordUtil.serializeToBinary(record, schema);
 		} catch (Exception e) {
 			LOG.warn("Event serialize error: ", e);
 			return null;

@@ -2,6 +2,7 @@ package com.github.codegerm.hydra.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,15 +85,19 @@ public class AvroRecordUtil {
 		return record;
 	}
 
-	public static GenericRecord deserializeFromJson(byte[] data, String entitySchema) throws IOException {
+	public static GenericRecord deserializeFromJson(String data, String entitySchema) throws IOException {
 		if (data == null) {
 			return null;
 		}
 		Schema schema = new Schema.Parser().parse(entitySchema);
 		DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>(schema);
-		Decoder decoder = DecoderFactory.get().jsonDecoder(schema, new String(data, "utf-8"));
+		Decoder decoder = DecoderFactory.get().jsonDecoder(schema, data);
 		GenericRecord record = datumReader.read(null, decoder);
 		return record;
+	}
+
+	public static GenericRecord deserializeFromJson(byte[] data, String entitySchema) throws IOException {
+		return deserializeFromJson(new String(data, StandardCharsets.UTF_8), entitySchema);
 	}
 
 	public static String getSchemaName(String entitySchema) {

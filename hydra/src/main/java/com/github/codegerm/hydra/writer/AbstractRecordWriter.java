@@ -17,6 +17,7 @@ import com.github.codegerm.hydra.event.StatusEventBuilder;
 public abstract class AbstractRecordWriter implements RecordWriter {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractAvroWriter.class);
+	private static final int DEFAULT_BATCH_SIZE = 10;
 
 	protected ChannelProcessor processor;
 	protected String entitySchema;
@@ -38,8 +39,11 @@ public abstract class AbstractRecordWriter implements RecordWriter {
 
 	@Override
 	public void writeAll(List<List<Object>> records) {
-		for (List<Object> record : records) {
-			byte[] body = serializeEvent(record, entitySchema);
+		int batchSize = getEventBatchSize();
+		for (int i = 0; i < records.size(); i += batchSize) {
+			int end = (i + batchSize) > records.size() ? records.size() : (i + batchSize);
+			List<List<Object>> subRecords = records.subList(i, end);
+			byte[] body = serializeEvents(subRecords, entitySchema);
 			if (body != null) {
 				Event event = SqlEventBuilder.build(body, header);
 				events.add(event);
@@ -61,10 +65,14 @@ public abstract class AbstractRecordWriter implements RecordWriter {
 		flush();
 	}
 
+	protected int getEventBatchSize() {
+		return DEFAULT_BATCH_SIZE;
+	}
+
 	protected abstract String getWriterType();
 
 	protected abstract String getEntityNameFromSchema(String schema);
 
-	protected abstract byte[] serializeEvent(List<Object> record, String schema);
+	protected abstract byte[] serializeEvents(List<List<Object>> records, String schema);
 
 }
