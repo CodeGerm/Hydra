@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.source.SqlSourceUtil;
+import com.github.codegerm.hydra.writer.AvroJsonWriter;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
-import com.github.codegerm.hydra.writer.JsonWriter;
 import com.github.codegerm.hydra.writer.RecordWriter;
 
 
@@ -62,7 +62,7 @@ public class HibernateHandler extends AbstractHandler {
 
 		/* Instantiate the CSV Writer */
 		//csvWriter = new CsvWriter(processor, ',', entitySchema);
-		recordWriter = new JsonWriter(processor, snapshotId, entitySchema);
+		recordWriter = new AvroJsonWriter(processor, snapshotId, entitySchema);
 	}
 
 	public void close() {

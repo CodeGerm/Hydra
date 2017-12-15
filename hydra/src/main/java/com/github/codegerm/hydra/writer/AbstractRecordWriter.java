@@ -14,66 +14,57 @@ import com.github.codegerm.hydra.event.EventBuilder;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
 import com.github.codegerm.hydra.event.StatusEventBuilder;
 
-/**
- * @author yufan.li
- *
- */
-public class AvroWriter implements RecordWriter{
+public abstract class AbstractRecordWriter implements RecordWriter {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AvroWriter.class);
-	private ChannelProcessor processor;
-	private String entitySchema;
-	private List<Event> events = new ArrayList<>();
-	public static final String WRITER_TYPE = "avro";
-	private Map<String, String> header;
-	
-	/**
-	 * @param processor
-	 * @param entitySchema
-	 */
-	public AvroWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractAvroWriter.class);
+
+	protected ChannelProcessor processor;
+	protected String entitySchema;
+	protected Map<String, String> header;
+	protected List<Event> events = new ArrayList<>();
+
+	public AbstractRecordWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
 		this.processor = processor;
 		this.entitySchema = entitySchema;
-		
+
 		header = new HashMap<String, String>();
 		header.put(StatusEventBuilder.SNAPSHOT_ID_KEY, snapshotId);
-		header.put(EventBuilder.WRITER_TYPE_KEY, WRITER_TYPE);
-		String entityName = AvroRecordUtil.getSchemaName(entitySchema);
-		if(entityName!=null)
+		header.put(EventBuilder.WRITER_TYPE_KEY, getWriterType());
+		String entityName = getEntityNameFromSchema(entitySchema);
+		if (entityName != null) {
 			header.put(EventBuilder.ENTITY_NAME_KEY, entityName);
+		}
 	}
 
-	/**
-	 * @param records
-	 */
 	@Override
 	public void writeAll(List<List<Object>> records) {
 		for (List<Object> record : records) {
-			try {
-				byte[] body = AvroRecordUtil.serialize(record, entitySchema);
+			byte[] body = serializeEvent(record, entitySchema);
+			if (body != null) {
 				Event event = SqlEventBuilder.build(body, header);
 				events.add(event);
-			} catch (Exception e) {
-				LOG.warn("Event serialize error: ", e);
 			}
 		}
-		
 	}
-	
+
 	@Override
-	public void flush(){
+	public void flush() {
 		if (events != null && !events.isEmpty()) {
 			LOG.info("Flushing: " + events.size() + " event(s): ");
 			processor.processEventBatch(events);
 		}
 		events.clear();
 	}
-	
+
 	@Override
 	public void close() {
 		flush();
 	}
 
+	protected abstract String getWriterType();
 
+	protected abstract String getEntityNameFromSchema(String schema);
+
+	protected abstract byte[] serializeEvent(List<Object> record, String schema);
 
 }

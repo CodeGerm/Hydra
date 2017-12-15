@@ -16,70 +16,103 @@ import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.JsonEncoder;
+import org.apache.commons.io.IOUtils;
 
 public class AvroRecordUtil {
 
-	public static byte[] serialize(List<Object> result, String entitySchema) throws IOException{
-		if(result == null)
+	private static BinaryEncoder encoder;
+	private static BinaryDecoder binaryDecoder;
+
+	public static byte[] serializeToBinary(List<Object> result, String entitySchema) throws IOException {
+		GenericRecord record = serialize(result, entitySchema);
+		ByteArrayOutputStream stream = null;
+		try {
+			stream = new ByteArrayOutputStream();
+			encoder = EncoderFactory.get().binaryEncoder(stream, encoder);
+			DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(record.getSchema());
+			datumWriter.write(record, encoder);
+			encoder.flush();
+			return stream.toByteArray();
+		} finally {
+			IOUtils.closeQuietly(stream);
+		}
+	}
+
+	public static byte[] serializeToJson(List<Object> result, String entitySchema) throws IOException {
+		GenericRecord record = serialize(result, entitySchema);
+		ByteArrayOutputStream stream = null;
+		try {
+			stream = new ByteArrayOutputStream();
+			JsonEncoder encoder = EncoderFactory.get().jsonEncoder(record.getSchema(), stream);
+			DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(record.getSchema());
+			datumWriter.write(record, encoder);
+			encoder.flush();
+			return stream.toByteArray();
+		} finally {
+			IOUtils.closeQuietly(stream);
+		}
+	}
+
+	public static GenericRecord serialize(List<Object> result, String entitySchema) throws IOException {
+		if (result == null) {
 			return null;
+		}
 		Schema schema = new Schema.Parser().parse(entitySchema);
-		if(schema.getFields().size()!=result.size())
+		if (schema.getFields().size() != result.size()) {
 			throw new IllegalStateException("Schema size is not same as result size");
-
+		}
 		GenericRecord record = new GenericData.Record(schema);
-
-
-		for(int i=0;i<result.size();i++){
+		for (int i = 0; i < result.size(); i++) {
 			Object obj = result.get(i);
 			record.put(i, convert(obj));
 		}
-
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		BinaryEncoder encoder = null;
-		encoder = EncoderFactory.get().binaryEncoder(stream, encoder);
-		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-		datumWriter.write(record, encoder);
-		encoder.flush();
-		return stream.toByteArray();
-
-
+		return record;
 	}
 
-
-	public static GenericRecord deserialize(byte[] data, String entitySchema) throws IOException{
-		if(data == null)
+	public static GenericRecord deserializeFromBinary(byte[] data, String entitySchema) throws IOException {
+		if (data == null) {
 			return null;
+		}
 		Schema schema = new Schema.Parser().parse(entitySchema);
 		DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>(schema);
-		BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(data, null);
+		binaryDecoder = DecoderFactory.get().binaryDecoder(data, binaryDecoder);
+		GenericRecord record = datumReader.read(null, binaryDecoder);
+		return record;
+	}
+
+	public static GenericRecord deserializeFromJson(byte[] data, String entitySchema) throws IOException {
+		if (data == null) {
+			return null;
+		}
+		Schema schema = new Schema.Parser().parse(entitySchema);
+		DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>(schema);
+		Decoder decoder = DecoderFactory.get().jsonDecoder(schema, new String(data, "utf-8"));
 		GenericRecord record = datumReader.read(null, decoder);
 		return record;
 	}
-	
+
 	public static String getSchemaName(String entitySchema) {
 		Schema schema = new Schema.Parser().parse(entitySchema);
 		return schema.getName();
 	}
-	
 
-	public static Object convert(Object obj){
-		if(obj.getClass().getName().equals("java.sql.Timestamp"))
-			return(((Timestamp)obj).getTime());
+	public static Object convert(Object obj) {
+		if (obj.getClass().getName().equals("java.sql.Timestamp"))
+			return (((Timestamp) obj).getTime());
 		return obj;
 	}
-	
-	
+
 	public static List<String> getEntityFields(String entitySchema) {
 		List<String> fields = new ArrayList<String>();
 		Schema schema = new Schema.Parser().parse(entitySchema);
-		for (Field field : schema.getFields()){
+		for (Field field : schema.getFields()) {
 			fields.add(field.name());
 		}
 		return fields;
 	}
-
-
 
 }
