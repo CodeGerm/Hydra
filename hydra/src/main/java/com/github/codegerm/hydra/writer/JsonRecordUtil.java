@@ -1,5 +1,6 @@
 package com.github.codegerm.hydra.writer;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -52,7 +53,8 @@ public class JsonRecordUtil {
 		}
 		Schema schema = new Schema.Parser().parse(entitySchema);
 		DatumReader<GenericRecord> datumReader = new GenericDatumReader<GenericRecord>(schema);
-		JsonDecoder decoder = DecoderFactory.get().jsonDecoder(schema, new String(data));
+		ByteArrayInputStream stream = new ByteArrayInputStream(data);
+		JsonDecoder decoder = DecoderFactory.get().jsonDecoder(schema, stream);
 		GenericRecord record = datumReader.read(null, decoder);
 		return record;
 	}
