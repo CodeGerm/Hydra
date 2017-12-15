@@ -6,28 +6,27 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.channel.ChannelProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.keedio.flume.source.HibernateContext;
 import org.keedio.flume.source.HibernateReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.codegerm.hydra.source.SqlSourceUtil;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
-import com.github.codegerm.hydra.writer.AvroWriter;
+import com.github.codegerm.hydra.writer.JsonWriter;
+import com.github.codegerm.hydra.writer.RecordWriter;
 
 
 public class HibernateHandler extends AbstractHandler {
 
-	
 	protected HibernateContext jdbcContext;
-	//private CsvWriter csvWriter;
-	private AvroWriter avroWriter;
+
+	private RecordWriter recordWriter;
 	private HibernateReader hibernateReader;
 	private static final String DEFAULT_STATUS_DIRECTORY = "flume/jdbcSource/status";
 	private static final String COLUMN_TO_SELECT_KEY = "columns.to.select";
 	private static final Logger LOG = LoggerFactory.getLogger(HibernateHandler.class);
 	private String status_file_path;
-	
-
 
 	public HibernateHandler(String snapshotId, Context context, ChannelProcessor processor, String table, String entitySchema) {
 		super(snapshotId, context, processor, table, entitySchema);
@@ -63,13 +62,13 @@ public class HibernateHandler extends AbstractHandler {
 
 		/* Instantiate the CSV Writer */
 		//csvWriter = new CsvWriter(processor, ',', entitySchema);
-		avroWriter = new AvroWriter(processor, snapshotId, entitySchema);
+		recordWriter = new JsonWriter(processor, snapshotId, entitySchema);
 	}
 
 	public void close() {
 		try {
 			hibernateReader.closeSession();
-			avroWriter.close();
+			recordWriter.close();
 		} catch (Exception e) {
 			LOG.warn("Error CSVWriter object ", e);
 		} finally {
@@ -84,8 +83,8 @@ public class HibernateHandler extends AbstractHandler {
 			List<List<Object>> result = hibernateReader.executeQuery();
 			LOG.debug(result.toString());
 			if (!result.isEmpty()) {
-				avroWriter.writeAll(result);
-				avroWriter.flush();
+				recordWriter.writeAll(result);
+				recordWriter.flush();
 				jdbcContext.updateStatusFile();
 			}
 

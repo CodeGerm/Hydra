@@ -1,12 +1,13 @@
 package com.github.codegerm.hydra.writer;
 
+import java.util.List;
 
 public interface RecordWriter {
-	
-	
-	public void close();
-	
-	public void flush();
 
-	
+	void writeAll(List<List<Object>> records);
+
+	void flush();
+
+	void close();
+
 }

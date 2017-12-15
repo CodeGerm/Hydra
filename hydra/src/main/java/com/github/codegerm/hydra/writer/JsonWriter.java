@@ -14,66 +14,56 @@ import com.github.codegerm.hydra.event.EventBuilder;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
 import com.github.codegerm.hydra.event.StatusEventBuilder;
 
-/**
- * @author yufan.li
- *
- */
-public class AvroWriter implements RecordWriter{
+public class JsonWriter implements RecordWriter {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AvroWriter.class);
+	public static final String WRITER_TYPE = "json";
+
+	private static final Logger LOG = LoggerFactory.getLogger(JsonWriter.class);
+
 	private ChannelProcessor processor;
 	private String entitySchema;
 	private List<Event> events = new ArrayList<>();
-	public static final String WRITER_TYPE = "avro";
 	private Map<String, String> header;
-	
-	/**
-	 * @param processor
-	 * @param entitySchema
-	 */
-	public AvroWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
+
+	public JsonWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
 		this.processor = processor;
 		this.entitySchema = entitySchema;
-		
+
 		header = new HashMap<String, String>();
 		header.put(StatusEventBuilder.SNAPSHOT_ID_KEY, snapshotId);
 		header.put(EventBuilder.WRITER_TYPE_KEY, WRITER_TYPE);
 		String entityName = AvroRecordUtil.getSchemaName(entitySchema);
-		if(entityName!=null)
+		if (entityName != null) {
 			header.put(EventBuilder.ENTITY_NAME_KEY, entityName);
+		}
 	}
 
-	/**
-	 * @param records
-	 */
 	@Override
 	public void writeAll(List<List<Object>> records) {
 		for (List<Object> record : records) {
 			try {
-				byte[] body = AvroRecordUtil.serialize(record, entitySchema);
+				byte[] body = JsonRecordUtil.serialize(record, entitySchema);
 				Event event = SqlEventBuilder.build(body, header);
 				events.add(event);
 			} catch (Exception e) {
 				LOG.warn("Event serialize error: ", e);
 			}
 		}
-		
+
 	}
-	
+
 	@Override
-	public void flush(){
+	public void flush() {
 		if (events != null && !events.isEmpty()) {
 			LOG.info("Flushing: " + events.size() + " event(s): ");
 			processor.processEventBatch(events);
 		}
 		events.clear();
 	}
-	
+
 	@Override
 	public void close() {
 		flush();
 	}
-
-
 
 }
