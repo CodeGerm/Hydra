@@ -25,26 +25,26 @@ import org.apache.flume.channel.MemoryChannel;
 import org.apache.flume.channel.ReplicatingChannelSelector;
 import org.apache.flume.conf.Configurables;
 import org.h2.tools.DeleteDbFiles;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.event.EventBuilder;
 import com.github.codegerm.hydra.event.SqlEventBuilder;
 import com.github.codegerm.hydra.schema.ColumnSchema;
-import com.github.codegerm.hydra.schema.ModelSchema;
 import com.github.codegerm.hydra.schema.EntitySchema;
+import com.github.codegerm.hydra.schema.ModelSchema;
 import com.github.codegerm.hydra.source.SqlEventDrivenSource;
 import com.github.codegerm.hydra.source.SqlSource;
 import com.github.codegerm.hydra.source.SqlSourceUtil;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
+import com.github.codegerm.hydra.writer.AvroJsonWriter;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
-import com.github.codegerm.hydra.writer.AvroWriter;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 public class TestSqlSource {
 
@@ -313,7 +313,7 @@ public class TestSqlSource {
 					&& e.getHeaders().get(EventBuilder.EVENT_TYPE_KEY).equals(SqlEventBuilder.EVENT_TYPE)) {
 				if (e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY) == null) {
 					System.out.println("No writer type defined");
-				} else if (e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY).equals(AvroWriter.WRITER_TYPE)) {
+				} else if (e.getHeaders().get(EventBuilder.WRITER_TYPE_KEY).equals(AvroJsonWriter.WRITER_TYPE)) {
 					String entity = e.getHeaders().get(EventBuilder.ENTITY_NAME_KEY);
 					String schema = entitySchemas.get(entity);
 					if (schema == null) {
@@ -321,8 +321,13 @@ public class TestSqlSource {
 						continue;
 					}
 					try {
-						String str = AvroRecordUtil.deserialize(e.getBody(), schema).toString();
-						System.out.println("Event header: " + e.getHeaders() + ", Event body: " + str);
+						String body = new String(e.getBody(), "UTF-8");
+						System.out.println("Event header: " + e.getHeaders() + ", Event body: " + body);
+						List<String> records = new Gson().fromJson(body, List.class);
+						for (String record : records) {
+							String str = AvroRecordUtil.deserializeFromJson(record, schema).toString();
+							System.out.println("Event item: " + str);
+						}
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}

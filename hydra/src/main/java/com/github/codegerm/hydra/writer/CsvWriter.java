@@ -51,10 +51,14 @@ public class CsvWriter implements RecordWriter{
 		}
 	}
 	
-	public void writeAll(List<String[]> arg0){
-		openCsvWriter.writeAll(arg0, true);
+	@Override
+	public void writeAll(List<List<Object>> records) {
+		List<String[]> csvRecords = new ArrayList<>();
+		for (List<Object> r : records) {
+			csvRecords.add(r.toArray(new String[r.size()]));
+		}
+		openCsvWriter.writeAll(csvRecords, true);
 	}
-
 	
 	private class ChannelWriter extends Writer {
 		private List<Event> events = new ArrayList<>();
