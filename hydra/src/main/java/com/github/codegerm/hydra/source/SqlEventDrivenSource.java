@@ -37,6 +37,7 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 		taskTrigger = TriggerFactory.createTrigger(context.getString(SqlSourceUtil.TRIGGER_TYPE_KEY));
 		if (taskTrigger != null) {
 			taskTrigger.configure(context);
+			taskTrigger.addDefaultTriggerAction();
 		}
 	}
 

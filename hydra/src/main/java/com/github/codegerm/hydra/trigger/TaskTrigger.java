@@ -17,4 +17,9 @@ public interface TaskTrigger {
 	void addTriggerAction(Action action);
 
 	void removeTriggerAction(Action action);
+
+	void addDefaultTriggerAction();
+	
+	void removeDefaultTriggerAction();
+
 }
