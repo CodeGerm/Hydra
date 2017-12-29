@@ -18,8 +18,8 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 
 	private static final Logger LOG = LoggerFactory.getLogger(SqlEventDrivenSource.class);
 
-	private TaskRunner taskRunner;
-	private TaskTrigger taskTrigger;
+	protected TaskRunner taskRunner;
+	protected TaskTrigger taskTrigger;
 
 	/*
 	 * (non-Javadoc)
@@ -36,8 +36,11 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 
 		taskTrigger = TriggerFactory.createTrigger(context.getString(SqlSourceUtil.TRIGGER_TYPE_KEY));
 		if (taskTrigger != null) {
+			LOG.info("Trigger is enabled");
 			taskTrigger.configure(context);
 			taskTrigger.addDefaultTriggerAction();
+		} else {
+			LOG.info("Trigger is disabled");
 		}
 	}
 
@@ -71,10 +74,6 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 			taskRunner.stop();
 		}
 		super.stop();
-	}
-
-	public TaskTrigger getTaskTrigger() {
-		return taskTrigger;
 	}
 
 }
