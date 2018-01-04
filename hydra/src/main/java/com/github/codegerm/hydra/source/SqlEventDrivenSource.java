@@ -2,11 +2,13 @@ package com.github.codegerm.hydra.source;
 
 import org.apache.flume.Context;
 import org.apache.flume.EventDrivenSource;
+import org.apache.flume.channel.ChannelProcessor;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.source.AbstractSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.codegerm.hydra.source.TaskRunner.ChannelProcessorProvider;
 import com.github.codegerm.hydra.trigger.TaskTrigger;
 import com.github.codegerm.hydra.trigger.TriggerFactory;
 
@@ -20,7 +22,6 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 
 	protected TaskRunner taskRunner;
 	protected TaskTrigger taskTrigger;
-	private Context context;
 
 	/*
 	 * (non-Javadoc)
@@ -31,7 +32,15 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 	@Override
 	public void configure(Context context) {
 		LOG.info("Start configuring SqlEventDrivenSource");
-		this.context = context;
+
+		taskRunner = new TaskRunner(new ChannelProcessorProvider() {
+
+			@Override
+			public ChannelProcessor provide() {
+				return getChannelProcessor();
+			}
+		});
+		taskRunner.configure(context);
 
 		taskTrigger = TriggerFactory.createTrigger(context.getString(SqlSourceUtil.TRIGGER_TYPE_KEY));
 		if (taskTrigger != null) {
@@ -50,8 +59,6 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 	 */
 	@Override
 	public synchronized void start() {
-		taskRunner = new TaskRunner(getChannelProcessor());
-		taskRunner.configure(context);
 		if (taskRunner != null) {
 			taskRunner.start();
 		}

@@ -25,17 +25,34 @@ import com.github.codegerm.hydra.task.TaskRegister;
 
 public class TaskRunner {
 
+	public interface ChannelProcessorProvider {
+		ChannelProcessor provide();
+	}
+
 	private static final Logger LOG = LoggerFactory.getLogger(TaskRunner.class);
 
-	private ChannelProcessor channelProcessor;
+	private ChannelProcessorProvider channelProcessorProvider;
 	private Context context;
 	private long timeout;
 	private ExecutorService executor;
 	private ExecutorService mainExecutor;
 	private SqlRunnable runner;
 
-	public TaskRunner(ChannelProcessor eventProcessor) {
-		this.channelProcessor = eventProcessor;
+	public TaskRunner(ChannelProcessorProvider provider) {
+		this.channelProcessorProvider = provider;
+	}
+
+	public TaskRunner(final ChannelProcessor channelProcessor) {
+		if (channelProcessor == null) {
+			throw new IllegalArgumentException("Channel processor is null");
+		}
+		this.channelProcessorProvider = new ChannelProcessorProvider() {
+
+			@Override
+			public ChannelProcessor provide() {
+				return channelProcessor;
+			}
+		};
 	}
 
 	public void configure(Context context) {
@@ -67,8 +84,8 @@ public class TaskRunner {
 	}
 
 	private void processEvent(Event event) {
-		if (channelProcessor != null) {
-			channelProcessor.processEvent(event);
+		if (channelProcessorProvider != null) {
+			channelProcessorProvider.provide().processEvent(event);
 		}
 	}
 
@@ -113,8 +130,8 @@ public class TaskRunner {
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
 				for (Entry<String, String> entry : entitySchemas.entrySet()) {
 					LOG.info("Starting worker thread for table [" + entry.getKey() + "]");
-					HibernateHandler handler = new HibernateHandler(snapshotId, context, channelProcessor,
-							entry.getKey(), entry.getValue());
+					HibernateHandler handler = new HibernateHandler(snapshotId, context,
+							channelProcessorProvider.provide(), entry.getKey(), entry.getValue());
 					taskList.add(handler);
 				}
 				List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
