@@ -24,6 +24,7 @@ public abstract class PollableTrigger extends AbstractTaskTrigger {
 
 	@Override
 	public void configure(Context context) {
+		super.configure(context);
 		initDelay = context.getLong(KEY_INIT_DELAY, DEFAULT_INIT_DELAY);
 		pollInterval = context.getLong(KEY_POLL_INTERVAL, DEFAULT_POLL_INTERVAL);
 		executor = Executors.newScheduledThreadPool(1);

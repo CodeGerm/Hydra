@@ -20,6 +20,7 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 
 	protected TaskRunner taskRunner;
 	protected TaskTrigger taskTrigger;
+	private Context context;
 
 	/*
 	 * (non-Javadoc)
@@ -30,9 +31,7 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 	@Override
 	public void configure(Context context) {
 		LOG.info("Start configuring SqlEventDrivenSource");
-
-		taskRunner = new TaskRunner(getChannelProcessor());
-		taskRunner.configure(context);
+		this.context = context;
 
 		taskTrigger = TriggerFactory.createTrigger(context.getString(SqlSourceUtil.TRIGGER_TYPE_KEY));
 		if (taskTrigger != null) {
@@ -51,6 +50,8 @@ public class SqlEventDrivenSource extends AbstractSource implements EventDrivenS
 	 */
 	@Override
 	public synchronized void start() {
+		taskRunner = new TaskRunner(getChannelProcessor());
+		taskRunner.configure(context);
 		if (taskRunner != null) {
 			taskRunner.start();
 		}

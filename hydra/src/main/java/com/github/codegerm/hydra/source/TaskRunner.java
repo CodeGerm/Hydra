@@ -96,6 +96,7 @@ public class TaskRunner {
 					execute();
 				}
 			} catch (Exception e) {
+				LOG.error("task error: ", e);
 				Thread.currentThread().interrupt();
 			}
 		}

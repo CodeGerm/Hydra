@@ -79,7 +79,13 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 
 	protected void triggerActions() {
 		for (Action action : actions) {
-			action.doAction();
+			LOG.info("action: " + action);
+			try{
+				action.doAction();
+			} catch (Exception e){
+				LOG.error("error in running action: ", e);
+			}
+			
 		}
 	}
 
