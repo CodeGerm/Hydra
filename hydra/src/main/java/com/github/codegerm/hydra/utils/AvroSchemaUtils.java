@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.avro.Schema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonArray;
@@ -14,6 +16,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public final class AvroSchemaUtils {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AvroSchemaUtils.class);
 
 	public static List<Schema> getSchemasAsList(String schemas) {
 		if (Strings.isNullOrEmpty(schemas)) {
@@ -37,6 +41,7 @@ public final class AvroSchemaUtils {
 			}
 			return schemaList;
 		} catch (Exception e) {
+			logger.warn("Schema parsing failed", e);
 			return null;
 		}
 	}

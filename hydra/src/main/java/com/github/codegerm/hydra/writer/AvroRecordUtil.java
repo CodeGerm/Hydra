@@ -106,6 +106,9 @@ public class AvroRecordUtil {
 	}
 
 	public static Object convert(Object obj) {
+		if (obj == null) {
+			return null;
+		}
 		if (obj.getClass().getName().equals("java.sql.Timestamp"))
 			return (((Timestamp) obj).getTime());
 		return obj;
