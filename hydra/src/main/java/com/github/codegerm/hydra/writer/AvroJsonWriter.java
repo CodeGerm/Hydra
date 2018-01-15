@@ -18,8 +18,8 @@ public class AvroJsonWriter extends AbstractAvroWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(AvroJsonWriter.class);
 	private static final Gson GSON = new GsonBuilder().create();
 
-	public AvroJsonWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
-		super(processor, snapshotId, entitySchema);
+	public AvroJsonWriter(ChannelProcessor processor, String snapshotId, String modelId, String entitySchema) {
+		super(processor, snapshotId, modelId, entitySchema);
 	}
 
 	@Override

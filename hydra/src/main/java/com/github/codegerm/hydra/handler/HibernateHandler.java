@@ -28,8 +28,8 @@ public class HibernateHandler extends AbstractHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(HibernateHandler.class);
 	private String status_file_path;
 
-	public HibernateHandler(String snapshotId, Context context, ChannelProcessor processor, String table, String entitySchema) {
-		super(snapshotId, context, processor, table, entitySchema);
+	public HibernateHandler(String snapshotId, Context context, ChannelProcessor processor, String modelId, String table, String entitySchema) {
+		super(snapshotId, context, processor, modelId, table, entitySchema);
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class HibernateHandler extends AbstractHandler {
 
 		/* Instantiate the CSV Writer */
 		//csvWriter = new CsvWriter(processor, ',', entitySchema);
-		recordWriter = new AvroJsonWriter(processor, snapshotId, entitySchema);
+		recordWriter = new AvroJsonWriter(processor, snapshotId, modelId, entitySchema);
 	}
 
 	public void close() {

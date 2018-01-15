@@ -10,13 +10,15 @@ public abstract class AbstractHandler implements Callable<Boolean> {
 
 	protected Context context;
 	protected ChannelProcessor processor;
+	protected String modelId;
 	protected String table;
 	protected String snapshotId;
 	protected String entitySchema;
 	
-	public AbstractHandler(String snapshotId, Context context, ChannelProcessor processor, String table, String entitySchema) {
+	public AbstractHandler(String snapshotId, Context context, ChannelProcessor processor, String modelId, String table, String entitySchema) {
 		this.context = context;
 		this.processor = processor;
+		this.modelId = modelId;
 		this.table = table;
 		this.snapshotId = snapshotId;
 		this.entitySchema = entitySchema;
