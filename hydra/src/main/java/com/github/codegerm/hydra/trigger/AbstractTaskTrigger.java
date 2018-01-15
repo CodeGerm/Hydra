@@ -48,9 +48,9 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 
 			@Override
 			public void doAction() {
-				String modelName = context.getString(SqlSourceUtil.MODEL_NAME_KEY);
+				String modelMapName = context.getString(SqlSourceUtil.MODELMAP_NAME_KEY);
 				String schemas = context.getString(SqlSourceUtil.MODEL_SCHEMA_KEY);
-				if (modelName == null) {
+				if (modelMapName == null) {
 					LOG.warn("Model name defined in flume is empty, skip snapshot.");
 					return;
 				}
@@ -62,7 +62,7 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 				Map<String, String> schemaMap = AvroSchemaUtils.getSchemasAsStringMap(schemas);
 				if (schemaMap != null) {
 					LOG.info("Start snapshot, task queued.");
-					TaskRegister.getInstance().addTask(new Task(schemaMap, modelName));
+					TaskRegister.getInstance().addTask(new Task(schemaMap, modelMapName));
 				} else {
 					LOG.warn("Schema format is invalid, skip snapshot.");
 				}
