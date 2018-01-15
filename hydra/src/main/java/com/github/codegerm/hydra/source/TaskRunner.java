@@ -93,8 +93,8 @@ public class TaskRunner {
 
 		private String modelId;
 		private String snapshotId;
-		protected Map<String, String> entitySchemas;
-
+		private Map<String, String> entitySchemas;
+		
 		public void setEntitySchemas(Map<String, String> entitySchemas) {
 			this.entitySchemas = entitySchemas;
 		}
@@ -108,7 +108,7 @@ public class TaskRunner {
 			try {
 				while (true) {
 					Task task = TaskRegister.getInstance().getTaskByTake();
-					setModelId(task.getModelId());
+					setModelId(task.getModelId());					
 					setEntitySchemas(task.getEntitySchemas());
 					execute();
 				}
@@ -131,7 +131,7 @@ public class TaskRunner {
 				for (Entry<String, String> entry : entitySchemas.entrySet()) {
 					LOG.info("Starting worker thread for table [" + entry.getKey() + "]");
 					HibernateHandler handler = new HibernateHandler(snapshotId, context,
-							channelProcessorProvider.provide(), entry.getKey(), entry.getValue());
+							channelProcessorProvider.provide(), modelId, entry.getKey(), entry.getValue());
 					taskList.add(handler);
 				}
 				List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);

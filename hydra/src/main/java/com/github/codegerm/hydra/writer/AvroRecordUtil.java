@@ -2,7 +2,10 @@ package com.github.codegerm.hydra.writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.sql.Clob;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +25,12 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AvroRecordUtil {
+
+	private static final Logger LOG = LoggerFactory.getLogger(AvroRecordUtil.class);
 
 	private static BinaryEncoder encoder;
 	private static BinaryDecoder binaryDecoder;
@@ -69,7 +76,7 @@ public class AvroRecordUtil {
 		GenericRecord record = new GenericData.Record(schema);
 		for (int i = 0; i < result.size(); i++) {
 			Object obj = result.get(i);
-			record.put(i, convert(obj));
+			record.put(i, convertFromSqlToAvro(obj));
 		}
 		return record;
 	}
@@ -105,12 +112,26 @@ public class AvroRecordUtil {
 		return schema.getName();
 	}
 
-	public static Object convert(Object obj) {
+	public static Object convertFromSqlToAvro(Object obj) {
 		if (obj == null) {
 			return null;
 		}
-		if (obj.getClass().getName().equals("java.sql.Timestamp"))
-			return (((Timestamp) obj).getTime());
+		if (obj instanceof java.sql.Timestamp) {
+			return ((Timestamp) obj).getTime();
+		}
+		if (obj instanceof java.sql.Clob) {
+			Reader reader = null;
+			try {
+				Clob clob = (Clob) obj;
+				reader = clob.getCharacterStream();
+				return IOUtils.toString(reader);
+			} catch (SQLException | IOException e) {
+				LOG.warn("Get clob value failed", e);
+				return null;
+			} finally {
+				IOUtils.closeQuietly(reader);
+			}
+		}
 		return obj;
 	}
 

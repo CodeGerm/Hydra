@@ -12,8 +12,8 @@ public class AvroBinaryWriter extends AbstractAvroWriter {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AvroBinaryWriter.class);
 
-	public AvroBinaryWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
-		super(processor, snapshotId, entitySchema);
+	public AvroBinaryWriter(ChannelProcessor processor, String snapshotId, String modelId, String entitySchema) {
+		super(processor, snapshotId, modelId, entitySchema);
 	}
 
 	@Override

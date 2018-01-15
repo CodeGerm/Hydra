@@ -157,7 +157,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
 			for (Entry<String, String> entry:entitySchemas.entrySet()) {
 				LOG.info("Starting worker thread for table [" + entry.getKey() + "]");
-				HibernateHandler handler = new HibernateHandler(snapshotId, context, getChannelProcessor(), entry.getKey(), entry.getValue());
+				HibernateHandler handler = new HibernateHandler(snapshotId, context, getChannelProcessor(), modelId, entry.getKey(), entry.getValue());
 				taskList.add(handler);
 			}
 			List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);

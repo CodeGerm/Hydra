@@ -19,18 +19,19 @@ public abstract class AbstractRecordWriter implements RecordWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractAvroWriter.class);
 	private static final int DEFAULT_BATCH_SIZE = 10;
 
-	protected ChannelProcessor processor;
+	protected ChannelProcessor processor;	
 	protected String entitySchema;
 	protected Map<String, String> header;
 	protected List<Event> events = new ArrayList<>();
 
-	public AbstractRecordWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
-		this.processor = processor;
+	public AbstractRecordWriter(ChannelProcessor processor, String snapshotId, String modelId, String entitySchema) {
+		this.processor = processor;		
 		this.entitySchema = entitySchema;
 
 		header = new HashMap<String, String>();
 		header.put(StatusEventBuilder.SNAPSHOT_ID_KEY, snapshotId);
 		header.put(EventBuilder.WRITER_TYPE_KEY, getWriterType());
+		header.put(EventBuilder.MODEL_ID_KEY, modelId);
 		String entityName = getEntityNameFromSchema(entitySchema);
 		if (entityName != null) {
 			header.put(EventBuilder.ENTITY_NAME_KEY, entityName);

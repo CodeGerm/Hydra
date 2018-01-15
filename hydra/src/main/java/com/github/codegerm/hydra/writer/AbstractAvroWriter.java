@@ -4,8 +4,8 @@ import org.apache.flume.channel.ChannelProcessor;
 
 public abstract class AbstractAvroWriter extends AbstractRecordWriter {
 
-	public AbstractAvroWriter(ChannelProcessor processor, String snapshotId, String entitySchema) {
-		super(processor, snapshotId, entitySchema);
+	public AbstractAvroWriter(ChannelProcessor processor, String snapshotId, String modelId, String entitySchema) {
+		super(processor, snapshotId, modelId, entitySchema);
 	}
 
 	@Override
