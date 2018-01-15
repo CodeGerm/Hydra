@@ -132,6 +132,13 @@ public class AvroRecordUtil {
 				IOUtils.closeQuietly(reader);
 			}
 		}
+		if (obj instanceof Byte) {
+			return ((Byte) obj).intValue();
+		}
+		if (obj instanceof byte[]) {
+			// TODO not support it for now
+			return null;
+		}
 		return obj;
 	}
 
