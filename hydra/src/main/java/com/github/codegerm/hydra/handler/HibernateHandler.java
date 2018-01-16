@@ -26,7 +26,6 @@ public class HibernateHandler extends AbstractHandler {
 	private static final String DEFAULT_STATUS_DIRECTORY = "flume/jdbcSource/status";
 	private static final String COLUMN_TO_SELECT_KEY = "columns.to.select";
 	private static final Logger LOG = LoggerFactory.getLogger(HibernateHandler.class);
-	private String status_file_path;
 
 	public HibernateHandler(String snapshotId, Context context, ChannelProcessor processor, String modelId, String table, String entitySchema) {
 		super(snapshotId, context, processor, modelId, table, entitySchema);
@@ -37,14 +36,14 @@ public class HibernateHandler extends AbstractHandler {
 		LOG.getName();
 
 		LOG.info("Reading and processing configuration values for source " + LOG.getName());
-		status_file_path = context.getString(SqlSourceUtil.STATUS_DIRECTORY_KEY, DEFAULT_STATUS_DIRECTORY);
-		String status_path = status_file_path + File.separator + snapshotId + File.separator + table;
+		String basePath = context.getString(SqlSourceUtil.STATUS_BASE_DIR_KEY, DEFAULT_STATUS_DIRECTORY);
+		String statusPath = basePath + File.separator + snapshotId + File.separator + table;
 
-		File status_path_dir = new File(status_path);
+		File status_path_dir = new File(statusPath);
 		if (!status_path_dir.exists())
 			status_path_dir.mkdirs();
 
-		context.put(SqlSourceUtil.STATUS_DIRECTORY_KEY, status_path);
+		context.put(SqlSourceUtil.STATUS_DIRECTORY_KEY, statusPath);
 		context.put(SqlSourceUtil.TABLE_KEY, table);
 		
 		List<String> columns = AvroRecordUtil.getEntityFields(entitySchema);

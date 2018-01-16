@@ -52,6 +52,8 @@ public class AvroRecordUtil {
 
 	public static byte[] serializeToJson(List<Object> result, String entitySchema) throws IOException {
 		GenericRecord record = serialize(result, entitySchema);
+		return record.toString().getBytes();
+		/*
 		ByteArrayOutputStream stream = null;
 		try {
 			stream = new ByteArrayOutputStream();
@@ -63,6 +65,7 @@ public class AvroRecordUtil {
 		} finally {
 			IOUtils.closeQuietly(stream);
 		}
+		*/
 	}
 
 	public static GenericRecord serialize(List<Object> result, String entitySchema) throws IOException {
@@ -136,8 +139,8 @@ public class AvroRecordUtil {
 			return ((Byte) obj).intValue();
 		}
 		if (obj instanceof byte[]) {
-			// TODO not support it for now
-			return null;
+			byte[] value = (byte[])obj;
+			return new String(value, StandardCharsets.UTF_8);
 		}
 		return obj;
 	}
