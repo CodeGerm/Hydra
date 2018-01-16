@@ -11,12 +11,14 @@ public class SqlResultTrigger extends PollableTrigger {
 
 	public static final String KEY_TRIGGER_STATUS_FILE = "trigger.statusFile";
 	public static final String KEY_TRIGGER_PARAMS = "trigger.parameters";
+	public static final String KEY_TRIGGER_FIRSTTIME = "trigger.firstTime";
 
 	private static final Logger logger = LoggerFactory.getLogger(SqlResultTrigger.class);
 
 	private String statusFile;
 	private String sql;
-
+	private boolean firstTimeTrigger;
+	
 	private RecordMonitor recordMonitor;
 
 	@Override
@@ -25,11 +27,12 @@ public class SqlResultTrigger extends PollableTrigger {
 
 		this.statusFile = context.getString(KEY_TRIGGER_STATUS_FILE);
 		this.sql = generateSQL(context.getString(KEY_TRIGGER_PARAMS));
-
+		this.firstTimeTrigger = context.getBoolean(KEY_TRIGGER_FIRSTTIME, false);
+		
 		Preconditions.checkNotNull(statusFile, "Status file is not defined");
 		Preconditions.checkNotNull(sql, "SQL is not defined");
 
-		this.recordMonitor = new SqlResultMonitor(context, sql, null);
+		this.recordMonitor = new SqlResultMonitor(context, sql, null, firstTimeTrigger);
 		logger.info("Sql result trigger configured: sql=" + sql);
 	}
 

@@ -13,10 +13,12 @@ public class SqlResultMonitor extends RecordMonitor {
 	private static final Logger logger = LoggerFactory.getLogger(SqlResultMonitor.class);
 
 	private String sql;
+	private boolean firstTimeTrigger;
 
-	public SqlResultMonitor(Context context, String sql, RecordStatus lastStatus) {
+	public SqlResultMonitor(Context context, String sql, RecordStatus lastStatus, boolean firstTimeTrigger) {
 		super(context, lastStatus);
 		this.sql = sql;
+		this.firstTimeTrigger = firstTimeTrigger;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -43,9 +45,14 @@ public class SqlResultMonitor extends RecordMonitor {
 
 		String newValue = valueBuilder.toString();
 		if (!StringUtils.equals(lastStatus.getRecordValue(), newValue)) {
-			logger.info("Detected SQL result changed: from=" + lastStatus.getRecordValue() + ", to=" + newValue);
+			logger.info("Detected SQL result changed: from=" + lastStatus.getRecordValue() + ", to=" + newValue);			
+			if (lastStatus.getRecordValue() == null && !firstTimeTrigger) {
+				logger.info("First time record result, ignored");
+				lastStatus.setTriggered(false);
+			} else {								
+				lastStatus.setTriggered(true);
+			}
 			lastStatus.setRecordValue(newValue);
-			lastStatus.setTriggered(true);
 		} else {
 			lastStatus.setTriggered(false);
 		}

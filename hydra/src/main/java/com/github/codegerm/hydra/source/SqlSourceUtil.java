@@ -10,7 +10,8 @@ public class SqlSourceUtil {
 	}
 	
 	//flume config keys
-	public static final String WORKER_THREAD_NUM_KEY="worker.thread.num";	
+	public static final String WORKER_THREAD_NUM_KEY="worker.thread.num";
+	public static final String STATUS_BASE_DIR_KEY = "status.file.basepath";
 	public static final String STATUS_DIRECTORY_KEY = "status.file.path";
 	public static final String POLL_INTERVAL_KEY = "poll.interval";
 	public static final String TABLE_KEY = "table";
