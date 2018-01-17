@@ -124,7 +124,7 @@ public class TaskRunner {
 			if (entitySchemas == null) {
 				throw new FlumeException("Entity Schemas is not initiated");
 			}
-			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId));
+			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 			try {
 
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
@@ -136,7 +136,7 @@ public class TaskRunner {
 				}
 				List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
 				// TODO: handle exceptions in result
-				processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId));
+				processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId, modelId));
 
 				Result runningResult = new Result(snapshotId, result);
 				TaskRegister.getInstance().addResult(runningResult);

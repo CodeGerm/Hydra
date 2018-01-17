@@ -18,7 +18,7 @@ public class StatusEventBuilder implements EventBuilder {
 	
 	public static final String EVENT_TYPE = "Status.Event";
 
-	protected static Event buildStatusEvent(String statusType, String snapshotId, String table) {
+	protected static Event buildStatusEvent(String statusType, String snapshotId, String modelId, String table) {
 		Event event = new SimpleEvent();
 		String timestamp = Long.toString(System.currentTimeMillis());
 		Map<String, String>header = new HashMap<String, String>();
@@ -26,6 +26,7 @@ public class StatusEventBuilder implements EventBuilder {
 		header.put(STATUS_TYPE_KEY, statusType);
 		header.put(TIMESTAMP_KEY, timestamp);
 		header.put(EVENT_TYPE_KEY, EVENT_TYPE);
+		header.put(EventBuilder.MODEL_ID_KEY, modelId);
 		if(table!=null)
 			header.put(ENTITY_NAME_KEY, table);
 		event.setHeaders(header);
@@ -34,20 +35,20 @@ public class StatusEventBuilder implements EventBuilder {
 	
 	
 	
-	public static Event buildSnapshotBeginEvent(String snapshotId){
-		return buildStatusEvent(SNAPSHOT_BEGIN_TYPE, snapshotId, null);
+	public static Event buildSnapshotBeginEvent(String snapshotId, String modelId){
+		return buildStatusEvent(SNAPSHOT_BEGIN_TYPE, snapshotId, modelId, null);
 	}
 	
-	public static Event buildSnapshotEndEvent(String snapshotId){
-		return buildStatusEvent(SNAPSHOT_END_TYPE, snapshotId, null);
+	public static Event buildSnapshotEndEvent(String snapshotId, String modelId){
+		return buildStatusEvent(SNAPSHOT_END_TYPE, snapshotId, modelId, null);
 	}
 	
-	public static Event buildTableBeginEvent(String snapshotId, String tableName){
-		return buildStatusEvent(TABLE_BEGIN_TYPE, snapshotId, tableName);
+	public static Event buildTableBeginEvent(String snapshotId, String modelId, String tableName){
+		return buildStatusEvent(TABLE_BEGIN_TYPE, snapshotId, modelId, tableName);
 	}
 	
-	public static Event buildTableEndEvent(String snapshotId, String tableName){
-		return buildStatusEvent(TABLE_END_TYPE, snapshotId, tableName);
+	public static Event buildTableEndEvent(String snapshotId, String modelId, String tableName){
+		return buildStatusEvent(TABLE_END_TYPE, snapshotId, modelId, tableName);
 	}
 
 }

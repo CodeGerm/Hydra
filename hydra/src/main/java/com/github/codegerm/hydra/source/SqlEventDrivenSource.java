@@ -13,7 +13,7 @@ import com.github.codegerm.hydra.trigger.TaskTrigger;
 import com.github.codegerm.hydra.trigger.TriggerFactory;
 
 /**
- * @author yufan.li
+ * @author yufan.liu
  *
  */
 public class SqlEventDrivenSource extends AbstractSource implements EventDrivenSource, Configurable {

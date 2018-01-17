@@ -31,7 +31,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**
- * @author yufan.li
+ * @author yufan.liu
  *
  */
 public class SqlSource extends AbstractSource implements Configurable, PollableSource {
@@ -151,7 +151,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 		if(entitySchemas == null){
 			throw new FlumeException("Entity Schemas is not initiated");
 		}
-		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId));
+		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 		try {
 
 			List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
@@ -162,7 +162,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			}
 			List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
 			//TODO: handle exceptions in result
-			getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId));
+			getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId, modelId));
 			if(mode.equals(MODE.TASK)){
 				Result runningResult = new Result(snapshotId, result);
 				TaskRegister.getInstance().addResult(runningResult);
