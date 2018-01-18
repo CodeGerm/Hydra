@@ -16,6 +16,8 @@ import com.google.common.base.Strings;
 
 public abstract class AbstractTaskTrigger implements TaskTrigger {
 
+	public static final String KEY_TRIGGER_PARAMS = "trigger.parameters";
+	
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractTaskTrigger.class);
 
 	protected Context context;
