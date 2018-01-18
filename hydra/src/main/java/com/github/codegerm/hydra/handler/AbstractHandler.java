@@ -28,10 +28,10 @@ public abstract class AbstractHandler implements Callable<Boolean> {
 	@Override
 	public Boolean call() {
 
-		processor.processEvent(StatusEventBuilder.buildTableBeginEvent(snapshotId, table));
+		processor.processEvent(StatusEventBuilder.buildTableBeginEvent(snapshotId, modelId, table));
 		Boolean success = handle();
 		if(success){
-			processor.processEvent(StatusEventBuilder.buildTableEndEvent(snapshotId, table));
+			processor.processEvent(StatusEventBuilder.buildTableEndEvent(snapshotId, modelId, table));
 			return true;
 		} else 
 			return false;
