@@ -112,7 +112,7 @@ public class AvroRecordUtil {
 
 	public static String getSchemaName(String entitySchema) {
 		Schema schema = new Schema.Parser().parse(entitySchema);
-		return schema.getName();
+		return schema.getFullName();
 	}
 
 	public static Object convertFromSqlToAvro(Object obj) {
