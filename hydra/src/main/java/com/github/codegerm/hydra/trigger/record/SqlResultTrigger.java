@@ -9,8 +9,7 @@ import com.google.common.base.Preconditions;
 
 public class SqlResultTrigger extends PollableTrigger {
 
-	public static final String KEY_TRIGGER_STATUS_FILE = "trigger.statusFile";
-	public static final String KEY_TRIGGER_PARAMS = "trigger.parameters";
+	public static final String KEY_TRIGGER_STATUS_FILE = "trigger.statusFile";	
 	public static final String KEY_TRIGGER_FIRSTTIME = "trigger.firstTime";
 
 	private static final Logger logger = LoggerFactory.getLogger(SqlResultTrigger.class);
