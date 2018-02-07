@@ -75,9 +75,9 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 				PollableSourceConstants.DEFAULT_MAX_BACKOFF_SLEEP);
 
 		if(mode.equals(MODE.SCHEDULE)){
-			if(!context.containsKey(SqlSourceUtil.MODELMAP_NAME_KEY))
-				throw new FlumeException("No model map name defined");
-			modelId = context.getString(SqlSourceUtil.MODELMAP_NAME_KEY);
+			if(!context.containsKey(SqlSourceUtil.MODEL_INSTANCE_KEY))
+				throw new FlumeException("No model instance name defined");
+			modelId = context.getString(SqlSourceUtil.MODEL_INSTANCE_KEY);
 			
 			if(!context.containsKey(SqlSourceUtil.MODEL_SCHEMA_KEY))
 				throw new FlumeException("No model schema defined");
