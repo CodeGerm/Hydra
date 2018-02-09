@@ -51,7 +51,7 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 			@Override
 			public void doAction() {
 				String instanceName = context.getString(SqlSourceUtil.MODEL_INSTANCE_KEY);
-				String schemas = context.getString(SqlSourceUtil.MODEL_INSTANCE_KEY);
+				String schemas = context.getString(SqlSourceUtil.MODEL_SCHEMA_KEY);
 				if (instanceName == null) {
 					LOG.warn("Model instance name defined in flume is empty, skip snapshot.");
 					return;
