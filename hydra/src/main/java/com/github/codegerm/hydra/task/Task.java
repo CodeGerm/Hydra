@@ -6,6 +6,8 @@ public class Task {
 	
 	private Map<String, String> entitySchemas;
 	private String modelId;
+	private Boolean killSignal = false;
+	
 	public Map<String, String> getEntitySchemas() {
 		return entitySchemas;
 	}
@@ -21,6 +23,14 @@ public class Task {
 	public Task(Map<String, String> entitySchemas, String modelId) {
 		this.entitySchemas = entitySchemas;
 		this.modelId = modelId;
+	}
+	
+	public Task(Boolean KillSignal) {
+		this.killSignal = KillSignal;
+	}
+	
+	public Boolean getKillSignal() {
+		return killSignal;
 	}
 	@Override
 	public String toString() {

@@ -71,7 +71,12 @@ public class TaskRunner {
 	}
 
 	public void stop() {
+		
 		executor.shutdown();
+		//kill the task queue listener
+		Task killTask = new Task(true);
+		TaskRegister.getInstance().addTask(killTask);
+		mainExecutor.shutdownNow();
 		while (!executor.isTerminated()) {
 			LOG.debug("Waiting for exec executor service to stop");
 			try {
@@ -108,6 +113,10 @@ public class TaskRunner {
 			try {
 				while (true) {
 					Task task = TaskRegister.getInstance().getTaskByTake();
+					if(task.getKillSignal()){
+						LOG.info("Kill signal received, stopping the task listener");
+						return;
+					}
 					setModelId(task.getModelId());					
 					setEntitySchemas(task.getEntitySchemas());
 					execute();

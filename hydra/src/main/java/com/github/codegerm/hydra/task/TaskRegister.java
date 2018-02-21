@@ -5,7 +5,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * @author yufan.li
+ * @author yufan.liu
  *
  */
 public class TaskRegister {
