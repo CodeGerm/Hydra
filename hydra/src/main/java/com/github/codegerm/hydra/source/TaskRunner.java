@@ -23,6 +23,12 @@ import com.github.codegerm.hydra.task.Result;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
 
+/**
+ * Bundle all table fetching actions into one
+ * task, if one action failed, fail the entire task.
+ * @author yufan.liu
+ *
+ */
 public class TaskRunner {
 
 	public interface ChannelProcessorProvider {
@@ -60,7 +66,6 @@ public class TaskRunner {
 
 		int threadNum = context.getInteger(SqlSourceUtil.WORKER_THREAD_NUM_KEY, SqlSourceUtil.DEFAULT_THREAD_NUM);
 		timeout = context.getLong(SqlSourceUtil.TIMEOUT_KEY, SqlSourceUtil.DEFAULT_TIMEOUT);
-
 		executor = Executors.newFixedThreadPool(threadNum);
 		mainExecutor = Executors.newSingleThreadExecutor();
 	}
@@ -131,7 +136,7 @@ public class TaskRunner {
 			snapshotId = modelId + System.currentTimeMillis();
 			LOG.info("start snapshot: " + snapshotId);
 			if (entitySchemas == null) {
-				throw new FlumeException("Entity Schemas is not initiated");
+				throw new FlumeException("Entity Schemas are not initiated");
 			}
 			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 			try {
@@ -144,8 +149,25 @@ public class TaskRunner {
 					taskList.add(handler);
 				}
 				List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
-				// TODO: handle exceptions in result
-				processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId, modelId));
+				boolean isSuccess = true;
+				for(Future<Boolean> future : result){
+					if(future.isCancelled()){
+						LOG.error("Task timeout");
+						isSuccess = false;
+						break;
+					}
+					if(future.get() == null || !future.get()){
+						isSuccess = false;
+						break;
+					}
+					
+				}
+				
+				if(isSuccess)
+					processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId, modelId));
+				else {
+					LOG.error("Task failed");
+				}
 
 				Result runningResult = new Result(snapshotId, result);
 				TaskRegister.getInstance().addResult(runningResult);

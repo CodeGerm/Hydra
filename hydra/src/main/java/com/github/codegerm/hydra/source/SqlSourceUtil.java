@@ -20,13 +20,14 @@ public class SqlSourceUtil {
 	public static final String MODEL_SCHEMA_KEY = "model.schema";
 	public static final String MODE_KEY = "mode";
 	public static final String TRIGGER_TYPE_KEY = "trigger.type";
-
+	public static final String PAGESIZE_KEY = "page.size";
+	public static final String PAGED_MODE = "paged.mode";
 	
 	//default values
-	public static final int DEFAULT_THREAD_NUM = 4;
+	public static final int DEFAULT_THREAD_NUM = 8;
 	public static final long DEFAULT_SCHEDULE_POLL_INTERVAL = 100000;
 	public static final long DEFAULT_TASK_POLL_INTERVAL = 1000;
-	public static final long DEFAULT_TIMEOUT = 100000;
+	public static final long DEFAULT_TIMEOUT = 36000000;
 	public static final String DEFAULT_MODE = MODE.TASK.name();
 	
 }

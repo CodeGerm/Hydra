@@ -17,6 +17,8 @@ import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
+
 import com.github.codegerm.hydra.reader.JDBCReader;
 
 public class HibernateReader implements JDBCReader {
@@ -91,7 +93,7 @@ public class HibernateReader implements JDBCReader {
 		if (!session.isConnected()){
 			resetConnection();
 		}
-				
+		
 		if (sqlSourceHelper.isCustomQuerySet()){
 			
 			query = session.createSQLQuery(sqlSourceHelper.buildQuery());
@@ -99,9 +101,7 @@ public class HibernateReader implements JDBCReader {
 			if (sqlSourceHelper.getMaxRows() != 0){
 				query = query.setMaxResults(sqlSourceHelper.getMaxRows());
 			}			
-		}
-		else
-		{
+		} else {
 			query = session
 					.createSQLQuery(sqlSourceHelper.getQuery())
 					.setFirstResult(Integer.parseInt(sqlSourceHelper.getCurrentIndex()));
@@ -118,6 +118,69 @@ public class HibernateReader implements JDBCReader {
 		}catch (Exception e){
 			LOG.error("Exception thrown, resetting connection.",e);
 			resetConnection();
+			throw e;
+		}
+		
+		if (!rowsList.isEmpty()){
+			if (sqlSourceHelper.isCustomQuerySet()){
+					sqlSourceHelper.setCurrentIndex(rowsList.get(rowsList.size()-1).get(0).toString());
+			}
+			else
+			{
+				sqlSourceHelper.setCurrentIndex(Integer.toString((Integer.parseInt(sqlSourceHelper.getCurrentIndex())
+						+ rowsList.size())));
+			}
+		}
+		
+		return rowsList;
+	}
+	
+	
+	public int getTableSize() throws InterruptedException{
+		Query query = session
+				.createSQLQuery(sqlSourceHelper.getCountQuery());
+		Object result = query.uniqueResult();
+		if(result instanceof Integer){
+			return (int)result;
+		} else if(result instanceof BigInteger){
+			return ((BigInteger) result).intValue();
+		} else
+			throw new IllegalStateException("Result is not a number");
+	}
+	
+	public String getTableName(){
+		return sqlSourceHelper.getTableName();
+	}
+	
+	
+	public List<List<Object>> executePagedQuery(int start, int limit) throws InterruptedException {
+		
+		List<List<Object>> rowsList = new ArrayList<List<Object>>() ;
+		Query query;
+		
+		if (!session.isConnected()){
+			resetConnection();
+		}
+				
+		if (sqlSourceHelper.isCustomQuerySet()){
+			
+			query = session.createSQLQuery(sqlSourceHelper.buildQuery());
+				
+		} else {
+			query = session
+					.createSQLQuery(sqlSourceHelper.getQuery());	
+		}
+		
+		query = query.setMaxResults(limit);
+		
+		query = query.setFirstResult(start);
+		
+		try {
+			rowsList = query.setFetchSize(limit).setResultTransformer(Transformers.TO_LIST).list();
+		}catch (Exception e){
+			LOG.error("Exception thrown, resetting connection.",e);
+			resetConnection();
+			throw e;
 		}
 		
 		if (!rowsList.isEmpty()){

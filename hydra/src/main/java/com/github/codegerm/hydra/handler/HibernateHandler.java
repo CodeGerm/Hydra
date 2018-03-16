@@ -26,9 +26,14 @@ public class HibernateHandler extends AbstractHandler {
 	private static final String DEFAULT_STATUS_DIRECTORY = "flume/jdbcSource/status";
 	private static final String COLUMN_TO_SELECT_KEY = "columns.to.select";
 	private static final Logger LOG = LoggerFactory.getLogger(HibernateHandler.class);
+	private int pageSize;
+	private static final int DEFAULT_PAGESIZE = 500;
+	private String contextTable;
+	private boolean pagedMode;
 
 	public HibernateHandler(String snapshotId, Context context, ChannelProcessor processor, String modelId, String table, String entitySchema) {
 		super(snapshotId, context, processor, modelId, table, entitySchema);
+		contextTable = table;
 	}
 
 	@Override
@@ -37,6 +42,8 @@ public class HibernateHandler extends AbstractHandler {
 
 		LOG.info("Reading and processing configuration values for source " + LOG.getName());
 		String basePath = context.getString(SqlSourceUtil.STATUS_BASE_DIR_KEY, DEFAULT_STATUS_DIRECTORY);
+		pagedMode = context.getBoolean(SqlSourceUtil.PAGED_MODE, true);
+		pageSize = context.getInteger(SqlSourceUtil.PAGESIZE_KEY, DEFAULT_PAGESIZE);
 		String statusPath = basePath + File.separator + snapshotId + File.separator + table;
 
 		File status_path_dir = new File(statusPath);
@@ -45,7 +52,7 @@ public class HibernateHandler extends AbstractHandler {
 
 		context.put(SqlSourceUtil.STATUS_DIRECTORY_KEY, statusPath);
 		context.put(SqlSourceUtil.TABLE_KEY, table);
-		
+	
 		List<String> columns = AvroRecordUtil.getEntityFields(entitySchema);
 		String columnToSelect = StringUtils.join(columns, ",");
 		context.put(COLUMN_TO_SELECT_KEY, columnToSelect);
@@ -57,7 +64,7 @@ public class HibernateHandler extends AbstractHandler {
 		hibernateReader = new HibernateReader(jdbcContext);
 		hibernateReader.establishSession();
 
-		System.out.println(jdbcContext.buildQuery());
+		LOG.info("Query to use: " + jdbcContext.buildQuery());
 
 		/* Instantiate the CSV Writer */
 		//csvWriter = new CsvWriter(processor, ',', entitySchema);
@@ -79,14 +86,25 @@ public class HibernateHandler extends AbstractHandler {
 	@Override
 	public Boolean handle() {
 		try {
-			List<List<Object>> result = hibernateReader.executeQuery();
-			LOG.debug(result.toString());
-			if (!result.isEmpty()) {
-				recordWriter.writeAll(result);
-				recordWriter.flush();
-				jdbcContext.updateStatusFile();
+			long currentTime = System.currentTimeMillis();
+			if(pagedMode){
+				int count = hibernateReader.getTableSize();
+				LOG.info("Table [" + contextTable + "] size: [" + count + "]" );
+				int pageNum = (int) (Math.ceil(count / pageSize));
+				for(int i = 0; i<=pageNum; i++){
+					LOG.info("Execute paged query of table [" + contextTable + "] from: " +i*pageSize + " to " + (i*pageSize+pageSize));
+					List<List<Object>> result = hibernateReader.executePagedQuery(i*pageSize, pageSize);
+					LOG.debug(result.toString());
+					writeResult(result);
+				}
+			} else {
+				List<List<Object>> result = hibernateReader.executeQuery();
+				LOG.debug(result.toString());
+				writeResult(result);
 			}
-
+			long endTime = System.currentTimeMillis();
+			long timeSpent = (endTime-currentTime)/1000;
+			LOG.info("procesing table: ["+ contextTable + "] takes: [" + timeSpent + "] seconds");
 		} catch (Exception e) {
 			LOG.error("Error procesing row", e);
 			return false;
@@ -94,6 +112,22 @@ public class HibernateHandler extends AbstractHandler {
 			close();
 		}
 		return true;
+	}
+	
+	private void writeResult(List<List<Object>> result) {
+		try {
+			if (!result.isEmpty()) {
+				recordWriter.writeAll(result);
+				recordWriter.flush();
+				jdbcContext.updateStatusFile();
+			}
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public String getTableName(){
+		return contextTable;
 	}
 
 }
