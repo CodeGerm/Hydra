@@ -38,6 +38,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 
 	private ExecutorService executor;
 	private static final Logger LOG = LoggerFactory.getLogger(SqlSource.class);
+	private Task task;
 	private String modelId;
 	private String snapshotId;
 	private long pollInterval;
@@ -121,7 +122,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			return execute();
 		}
 		else if(mode.equals(MODE.TASK)){
-			Task task = TaskRegister.getInstance().getTaskByPoll();
+			task = TaskRegister.getInstance().getTaskByPoll();
 			Status status = null;
 			if(task == null){
 				status = Status.READY;
@@ -151,6 +152,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 		if(entitySchemas == null){
 			throw new FlumeException("Entity Schemas is not initiated");
 		}
+		TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
 		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 		try {
 
@@ -166,6 +168,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			if(mode.equals(MODE.TASK)){
 				Result runningResult = new Result(snapshotId, result);
 				TaskRegister.getInstance().addResult(runningResult);
+				TaskRegister.getInstance().markTaskDone(snapshotId);
 			} else
 				Thread.sleep(pollInterval);
 			return Status.READY;
