@@ -101,6 +101,7 @@ public class TaskRunner {
 
 	private class SqlRunnable implements Runnable {
 
+		private Task task;
 		private String modelId;
 		private String snapshotId;
 		private Map<String, String> entitySchemas;
@@ -117,7 +118,7 @@ public class TaskRunner {
 		public void run() {
 			try {
 				while (true) {
-					Task task = TaskRegister.getInstance().getTaskByTake();
+					task = TaskRegister.getInstance().getTaskByTake();
 					if(task.getKillSignal()){
 						LOG.info("Kill signal received, stopping the task listener");
 						return;
@@ -138,6 +139,7 @@ public class TaskRunner {
 			if (entitySchemas == null) {
 				throw new FlumeException("Entity Schemas are not initiated");
 			}
+			TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
 			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 			try {
 
@@ -170,13 +172,14 @@ public class TaskRunner {
 				}
 
 				Result runningResult = new Result(snapshotId, result);
-				TaskRegister.getInstance().addResult(runningResult);
-
+				TaskRegister.getInstance().addResult(runningResult);				
 				return true;
 
 			} catch (Exception e) {
 				LOG.error("Error procesing", e);
 				return false;
+			} finally {
+				TaskRegister.getInstance().markTaskDone(snapshotId);
 			}
 		}
 	}

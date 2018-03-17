@@ -1,6 +1,8 @@
 package com.github.codegerm.hydra.task;
 
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -14,10 +16,12 @@ public class TaskRegister {
 	private static final int DEFAULT_QUEUE_SIZE = 1024;
 	private BlockingQueue<Task> taskQueue;
 	private BlockingQueue<Result> resultQueue;
+	private Map<String, Task> runningTasks;
 	
 	private  TaskRegister() {
 		taskQueue = new ArrayBlockingQueue<Task>(DEFAULT_QUEUE_SIZE);
 		resultQueue = new ArrayBlockingQueue<Result>(DEFAULT_QUEUE_SIZE);
+		runningTasks = new HashMap<>();
 	}
 	
 	public static TaskRegister getInstance(){
@@ -32,15 +36,23 @@ public class TaskRegister {
 	}
 	
 	public Task getTaskByPoll(){
-		return taskQueue.poll();
+		return taskQueue.poll();			
 	}
 	
 	public Task getTaskByTake() throws InterruptedException{
 		return taskQueue.take();
 	}
 	
+	public void assignSnapshotId(String snapshotId, Task task) {
+		runningTasks.put(snapshotId, task);
+	}
+	
+	public void markTaskDone(String snapshotId) {
+		runningTasks.remove(snapshotId);
+	}
+	
 	public void addResult(Result result){
-		resultQueue.add(result);
+		resultQueue.add(result);		
 	}
 	
 	public Result getResultByPoll(){
@@ -51,11 +63,11 @@ public class TaskRegister {
 		return resultQueue.take();
 	}
 	
-
-	
-	
-
-	
-
+	public boolean isAnyTaskRunningOrPending() {
+		if (taskQueue.size() > 0) {
+			return true;
+		}
+		return runningTasks.size() > 0;		
+	}
 
 }
