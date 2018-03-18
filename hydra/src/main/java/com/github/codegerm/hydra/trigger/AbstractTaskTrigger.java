@@ -62,6 +62,7 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 				}
 
 				Map<String, String> schemaMap = AvroSchemaUtils.getSchemasAsStringMap(schemas);
+				schemaMap = AvroSchemaUtils.replaceTableNameByEnv(schemaMap);
 				if (schemaMap != null) {
 					LOG.info("Start snapshot, task queued.");
 					TaskRegister.getInstance().addTask(new Task(schemaMap, instanceName));

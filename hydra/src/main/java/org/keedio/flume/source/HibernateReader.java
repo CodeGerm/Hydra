@@ -112,8 +112,6 @@ public class HibernateReader implements JDBCReader {
 		}
 		
 		try {
-			for(String s  : query.getNamedParameters())
-			System.out.println(s);
 			rowsList = query.setFetchSize(sqlSourceHelper.getMaxRows()).setResultTransformer(Transformers.TO_LIST).list();
 		}catch (Exception e){
 			LOG.error("Exception thrown, resetting connection.",e);

@@ -10,18 +10,19 @@ public class SqlSourceUtil {
 	}
 	
 	//flume config keys
-	public static final String WORKER_THREAD_NUM_KEY="worker.thread.num";
+	public static final String WORKER_THREAD_NUM_KEY="snapshot_worker_number";
 	public static final String STATUS_BASE_DIR_KEY = "status.file.basepath";
 	public static final String STATUS_DIRECTORY_KEY = "status.file.path";
 	public static final String POLL_INTERVAL_KEY = "poll.interval";
 	public static final String TABLE_KEY = "table";
-	public static final String TIMEOUT_KEY = "timeout";
+	public static final String TIMEOUT_KEY = "snapshot_task_timeout";
 	public static final String MODEL_INSTANCE_KEY = "model.instance";
 	public static final String MODEL_SCHEMA_KEY = "model.schema";
 	public static final String MODE_KEY = "mode";
 	public static final String TRIGGER_TYPE_KEY = "trigger.type";
-	public static final String PAGESIZE_KEY = "page.size";
+	public static final String PAGESIZE_KEY = "snapshot_chunk_size";
 	public static final String PAGED_MODE = "paged.mode";
+	public static final String TABLE_NAME_REPLACE_ENV = "SNASHOT_TABLE_REPLACE";
 	
 	//default values
 	public static final int DEFAULT_THREAD_NUM = 8;
