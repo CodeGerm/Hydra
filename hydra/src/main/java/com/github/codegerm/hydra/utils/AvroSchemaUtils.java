@@ -117,7 +117,7 @@ public final class AvroSchemaUtils {
 					 	 newSchemaMap.put(k, schemaMap.get(k));
 					 } else {
 						if(nodeMap.containsKey(content[0])){
-						 String newName = nodeMap.get(k);
+						 String newName = nodeMap.get(content[0]);
 						 for(int i = 1;i<content.length;i++){
 							 newName = newName+"."+content[i];
 						 }
