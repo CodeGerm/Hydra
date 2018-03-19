@@ -67,8 +67,7 @@ public final class AvroSchemaUtils {
 	/*
 	 *  { "schema1.table1" : "schema2.table1", "table1" : "table2" }
 	 */
-	public static Map<String, String> replaceTableNameByEnv(Map<String, String> schemaMap) {
-		String mapString = System.getenv(SqlSourceUtil.TABLE_NAME_REPLACE_ENV);	
+	public static Map<String, String> replaceTableNameByEnv(Map<String, String> schemaMap, String mapString) {
 		
 		try{
 			if(mapString != null && !mapString.isEmpty()){
@@ -89,6 +88,47 @@ public final class AvroSchemaUtils {
 				return newSchemaMap;
 			} else {
 				logger.info("No replace table in env found: ");
+			}
+		} catch (Exception e){
+			logger.error("Table name replace failed, keep orginal name", e);
+		}
+
+		return schemaMap;
+
+	}
+	
+	/*
+	 *  { "schema1" : "schema2"}
+	 */
+	public static Map<String, String> replaceSchemaNameByEnv(Map<String, String> schemaMap, String mapString) {
+		
+		try{
+			if(mapString != null && !mapString.isEmpty()){
+				logger.info("Replace schema in env found: " + mapString);
+				Type mapType = new TypeToken<Map<String, String>>(){}.getType();  
+				Map<String, String> map = new Gson().fromJson(mapString, mapType);
+				Map<String, String> nodeMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+				nodeMap.putAll(map);
+				Map<String, String> newSchemaMap = new HashMap<String, String>();
+				for(String k : schemaMap.keySet()){
+					 String [] content = k.split("\\.");
+					 if(content.length<2){
+						 logger.warn("Table name: "+k+" has no schema name, skipping");
+					 	 newSchemaMap.put(k, schemaMap.get(k));
+					 } else {
+						if(nodeMap.containsKey(content[0])){
+						 String newName = nodeMap.get(k);
+						 for(int i = 1;i<content.length;i++){
+							 newName = newName+"."+content[i];
+						 }
+						 logger.info("Replace table: " + k +" to " + newName);						
+						 newSchemaMap.put(newName, schemaMap.get(k));
+						}
+					 }
+				}
+				return newSchemaMap;
+			} else {
+				logger.info("No replace schema in parameter found: ");
 			}
 		} catch (Exception e){
 			logger.error("Table name replace failed, keep orginal name", e);
