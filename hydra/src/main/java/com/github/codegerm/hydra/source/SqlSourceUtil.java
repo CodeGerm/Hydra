@@ -23,6 +23,7 @@ public class SqlSourceUtil {
 	public static final String PAGESIZE_KEY = "snapshot_chunk_size";
 	public static final String PAGED_MODE = "paged.mode";
 	public static final String TABLE_NAME_REPLACE_ENV = "SNASHOT_TABLE_REPLACE";
+	public static final String SCHEMA_NAME_REPLACE_ENV = "SNASHOT_SCHEMA_REPLACE";
 	
 	//default values
 	public static final int DEFAULT_THREAD_NUM = 8;

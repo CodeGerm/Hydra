@@ -60,9 +60,9 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 					LOG.warn("Schemas defined in flume is empty, skip snapshot.");
 					return;
 				}
-
+				String replace = context.getString(SqlSourceUtil.SCHEMA_NAME_REPLACE_ENV);
 				Map<String, String> schemaMap = AvroSchemaUtils.getSchemasAsStringMap(schemas);
-				schemaMap = AvroSchemaUtils.replaceTableNameByEnv(schemaMap);
+				schemaMap = AvroSchemaUtils.replaceSchemaNameByEnv(schemaMap, replace);
 				if (schemaMap != null) {
 					LOG.info("Start snapshot, task queued.");
 					TaskRegister.getInstance().addTask(new Task(schemaMap, instanceName));
