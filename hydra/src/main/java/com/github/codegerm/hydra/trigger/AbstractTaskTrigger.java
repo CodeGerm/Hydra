@@ -13,12 +13,16 @@ import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
 import com.github.codegerm.hydra.utils.AvroSchemaUtils;
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 
 public abstract class AbstractTaskTrigger implements TaskTrigger {
 
 	public static final String KEY_TRIGGER_PARAMS = "trigger.parameters";
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractTaskTrigger.class);
+	private static final Gson GSON = new GsonBuilder().create();
 
 	protected Context context;
 	protected List<Action> actions = new ArrayList<>();
@@ -60,7 +64,7 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 					LOG.warn("Schemas defined in flume is empty, skip snapshot.");
 					return;
 				}
-				String replace = context.getString(SqlSourceUtil.SCHEMA_NAME_REPLACE_ENV);
+				String replace = getReplaceSchemas(context);
 				Map<String, String> schemaMap = AvroSchemaUtils.getSchemasAsStringMap(schemas);
 				schemaMap = AvroSchemaUtils.replaceSchemaNameByEnv(schemaMap, replace);
 				if (schemaMap != null) {
@@ -83,13 +87,29 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 	protected void triggerActions() {
 		for (Action action : actions) {
 			LOG.info("action: " + action);
-			try{
+			try {
 				action.doAction();
-			} catch (Exception e){
+			} catch (Exception e) {
 				LOG.error("error in running action: ", e);
 			}
-			
+
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private String getReplaceSchemas(Context context) {
+		String userParamsStr = context.getString("userParams");
+		if (userParamsStr != null) {
+			try {
+				Map<String, String> userParams = GSON.fromJson(userParamsStr, Map.class);
+				if (userParams != null) {
+					return userParams.get(SqlSourceUtil.SCHEMA_NAME_REPLACE_ENV);
+				}
+			} catch (JsonSyntaxException e) {
+				LOG.warn("Can't parse userParams", e);
+			}
+		}
+		return null;
 	}
 
 }
