@@ -10,6 +10,7 @@ public class StatusEventBuilder implements EventBuilder {
 
 	public static final String SNAPSHOT_BEGIN_TYPE = "snapshot.begin";
 	public static final String SNAPSHOT_END_TYPE = "snapshot.end";
+	public static final String SNAPSHOT_ERROR_TYPE = "snapshot.error";
 	public static final String TABLE_BEGIN_TYPE = "table.begin";
 	public static final String TABLE_END_TYPE = "table.end";
 
@@ -18,7 +19,7 @@ public class StatusEventBuilder implements EventBuilder {
 	
 	public static final String EVENT_TYPE = "Status.Event";
 
-	protected static Event buildStatusEvent(String statusType, String snapshotId, String modelId, String table) {
+	protected static Event buildStatusEvent(String statusType, String snapshotId, String modelId, String entity) {
 		Event event = new SimpleEvent();
 		String timestamp = Long.toString(System.currentTimeMillis());
 		Map<String, String>header = new HashMap<String, String>();
@@ -27,8 +28,8 @@ public class StatusEventBuilder implements EventBuilder {
 		header.put(TIMESTAMP_KEY, timestamp);
 		header.put(EVENT_TYPE_KEY, EVENT_TYPE);
 		header.put(EventBuilder.MODEL_ID_KEY, modelId);
-		if(table!=null)
-			header.put(ENTITY_NAME_KEY, table);
+		if(entity!=null)
+			header.put(ENTITY_NAME_KEY, entity);
 		event.setHeaders(header);
 		return event;
 	}
@@ -50,5 +51,10 @@ public class StatusEventBuilder implements EventBuilder {
 	public static Event buildTableEndEvent(String snapshotId, String modelId, String tableName){
 		return buildStatusEvent(TABLE_END_TYPE, snapshotId, modelId, tableName);
 	}
+	
+	public static Event buildSnapshotErrorEvent(String snapshotId, String modelId, String msg){
+		return buildStatusEvent(SNAPSHOT_ERROR_TYPE, snapshotId, modelId, msg);
+	}
+	
 
 }
