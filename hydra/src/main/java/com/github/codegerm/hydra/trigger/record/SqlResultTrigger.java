@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.trigger.PollableTrigger;
+import com.github.codegerm.hydra.utils.AvroSchemaUtils;
 import com.google.common.base.Preconditions;
 
 public class SqlResultTrigger extends PollableTrigger {

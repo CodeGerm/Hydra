@@ -39,7 +39,7 @@ public class SqlResultMonitor extends RecordMonitor {
 
 			}
 		} catch (Exception e) {
-			logger.warn("Execute SQL failed", e);
+			logger.warn("Execute SQL: " + sql +" failed, won't auto trigger snapshot");
 			return lastStatus;
 		}
 

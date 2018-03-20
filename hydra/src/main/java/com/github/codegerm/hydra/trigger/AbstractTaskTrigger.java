@@ -22,7 +22,7 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 	public static final String KEY_TRIGGER_PARAMS = "trigger.parameters";
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractTaskTrigger.class);
-	private static final Gson GSON = new GsonBuilder().create();
+	
 
 	protected Context context;
 	protected List<Action> actions = new ArrayList<>();
@@ -64,7 +64,7 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 					LOG.warn("Schemas defined in flume is empty, skip snapshot.");
 					return;
 				}
-				String replace = getReplaceSchemas(context);
+				String replace = AvroSchemaUtils.getReplaceSchemas(context);
 				Map<String, String> schemaMap = AvroSchemaUtils.getSchemasAsStringMap(schemas);
 				schemaMap = AvroSchemaUtils.replaceSchemaNameByEnv(schemaMap, replace);
 				if (schemaMap != null) {
@@ -96,20 +96,6 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private String getReplaceSchemas(Context context) {
-		String userParamsStr = context.getString("userParams");
-		if (userParamsStr != null) {
-			try {
-				Map<String, String> userParams = GSON.fromJson(userParamsStr, Map.class);
-				if (userParams != null) {
-					return userParams.get(SqlSourceUtil.SCHEMA_NAME_REPLACE_ENV);
-				}
-			} catch (JsonSyntaxException e) {
-				LOG.warn("Can't parse userParams", e);
-			}
-		}
-		return null;
-	}
+
 
 }
