@@ -141,6 +141,9 @@ public class TaskRunner {
 			}
 			TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
 			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
+			//TODO:pre-processing
+			
+			
 			try {
 
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
@@ -168,7 +171,9 @@ public class TaskRunner {
 				if(isSuccess)
 					processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId, modelId));
 				else {
-					LOG.error("Task failed");
+					String msg = "Tasks failed because one of tasks failed or timeout";
+					LOG.error(msg);
+					processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
 				}
 
 				Result runningResult = new Result(snapshotId, result);
