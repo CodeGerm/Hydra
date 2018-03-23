@@ -16,6 +16,9 @@ public class SqlSourceUtil {
 	public static final String POLL_INTERVAL_KEY = "poll.interval";
 	public static final String TABLE_KEY = "table";
 	public static final String TIMEOUT_KEY = "snapshot_task_timeout";
+	public static final String CMD_TIMEOUT_KEY = "pre_processing_timeout";
+	public static final String CMD_KEY = "pre_processing_cmd";
+
 	public static final String MODEL_INSTANCE_KEY = "model.instance";
 	public static final String MODEL_SCHEMA_KEY = "model.schema";
 	public static final String MODE_KEY = "mode";
@@ -31,6 +34,7 @@ public class SqlSourceUtil {
 	public static final long DEFAULT_SCHEDULE_POLL_INTERVAL = 100000;
 	public static final long DEFAULT_TASK_POLL_INTERVAL = 1000;
 	public static final long DEFAULT_TIMEOUT = 36000000;
+	public static final long DEFAULT_CMD_TIMEOUT = 600000;
 	public static final String DEFAULT_MODE = MODE.TASK.name();
 	
 }
