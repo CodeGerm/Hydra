@@ -22,6 +22,7 @@ import com.github.codegerm.hydra.handler.HibernateHandler;
 import com.github.codegerm.hydra.task.Result;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
+import com.github.codegerm.hydra.utils.CommandUtils;
 
 /**
  * Bundle all table fetching actions into one
@@ -40,6 +41,9 @@ public class TaskRunner {
 	private ChannelProcessorProvider channelProcessorProvider;
 	private Context context;
 	private long timeout;
+	private long cmdTimeout;
+	private CommandUtils cmdUtil;
+	private String preProcessingCmd;
 	private ExecutorService executor;
 	private ExecutorService mainExecutor;
 	private SqlRunnable runner;
@@ -66,6 +70,10 @@ public class TaskRunner {
 
 		int threadNum = context.getInteger(SqlSourceUtil.WORKER_THREAD_NUM_KEY, SqlSourceUtil.DEFAULT_THREAD_NUM);
 		timeout = context.getLong(SqlSourceUtil.TIMEOUT_KEY, SqlSourceUtil.DEFAULT_TIMEOUT);
+		cmdTimeout = context.getLong(SqlSourceUtil.CMD_TIMEOUT_KEY, SqlSourceUtil.DEFAULT_CMD_TIMEOUT);	
+		preProcessingCmd = context.getString(SqlSourceUtil.CMD_KEY);
+		if(preProcessingCmd != null)
+			cmdUtil = new CommandUtils(cmdTimeout);
 		executor = Executors.newFixedThreadPool(threadNum);
 		mainExecutor = Executors.newSingleThreadExecutor();
 	}
@@ -141,8 +149,27 @@ public class TaskRunner {
 			}
 			TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
 			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
-			//TODO:pre-processing
-			
+			//Run pre-processing script/cmd
+			String cmdError = "";
+		
+			if(preProcessingCmd != null){
+				LOG.info("Pre-processing enabled: " + preProcessingCmd);
+				try {
+					cmdError = cmdUtil.executeCmd(preProcessingCmd);
+				} catch (Exception e) {
+					String msg = "pre-processing failed, sending fail result: " + e.getMessage();
+					LOG.error(msg);
+					processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
+					return false;
+				}
+				if(cmdError!=null && !cmdError.isEmpty()){
+					String msg = "pre-processing failed, sending fail result: " + cmdError;
+					LOG.error(msg);
+					processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
+					return false;
+				}
+				
+			}
 			
 			try {
 

@@ -229,6 +229,7 @@ public class TestSqlSource {
 		context.put("hibernate.connection.password", DB_PASSWORD);
 		context.put("hibernate.connection.driver_class", DB_DRIVER);
 		context.put("status.file.name", "statusFile");
+		context.put("pre_processing_cmd", "ls");
 		context.put("status.file.path", SOURCE_STATUS_DIR + "/eventdriven");
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
