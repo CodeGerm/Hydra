@@ -75,6 +75,7 @@ public class CommandUtils  {
 			String msg = "Running cmd: [" + cmd + "] failed: ";
 			logger.error(msg, e);
 			throw e;
+			
 		}
 	}
 
@@ -118,20 +119,34 @@ public class CommandUtils  {
 	}
 	
 	private void getCmdError(Process process, StringBuffer builder) throws IOException{
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-		String line = "";
-		while ((line = reader.readLine()) != null) {
-			builder.append(line + "\n");
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			String line = "";
+			while ((line = reader.readLine()) != null) {
+				builder.append(line + "\n");
+			}
+		} catch (IOException e){
+			throw e;
+		} finally {
+			if(reader != null)
+				reader.close();
 		}
 	}
-	
+
 	private void getCmdOutput(Process process, StringBuffer builder) throws IOException{
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		String line = "";
-		while ((line = reader.readLine()) != null) {
-			builder.append(line + "\n");
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line = "";
+			while ((line = reader.readLine()) != null) {
+				builder.append(line + "\n");
+			}
+		} catch (IOException e){
+			throw e;
+		} finally {
+			if(reader != null)
+				reader.close();
 		}
 	}
 
