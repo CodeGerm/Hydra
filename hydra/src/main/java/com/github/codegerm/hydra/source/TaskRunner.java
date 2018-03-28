@@ -25,8 +25,9 @@ import com.github.codegerm.hydra.task.TaskRegister;
 import com.github.codegerm.hydra.utils.CommandUtils;
 
 /**
- * Bundle all table fetching actions into one
- * task, if one action failed, fail the entire task.
+ * Bundle all table fetching actions into one task, if one action failed, fail
+ * the entire task.
+ * 
  * @author yufan.liu
  *
  */
@@ -70,9 +71,9 @@ public class TaskRunner {
 
 		int threadNum = context.getInteger(SqlSourceUtil.WORKER_THREAD_NUM_KEY, SqlSourceUtil.DEFAULT_THREAD_NUM);
 		timeout = context.getLong(SqlSourceUtil.TIMEOUT_KEY, SqlSourceUtil.DEFAULT_TIMEOUT);
-		cmdTimeout = context.getLong(SqlSourceUtil.CMD_TIMEOUT_KEY, SqlSourceUtil.DEFAULT_CMD_TIMEOUT);	
+		cmdTimeout = context.getLong(SqlSourceUtil.CMD_TIMEOUT_KEY, SqlSourceUtil.DEFAULT_CMD_TIMEOUT);
 		preProcessingCmd = context.getString(SqlSourceUtil.CMD_KEY);
-		if(preProcessingCmd != null)
+		if (preProcessingCmd != null)
 			cmdUtil = new CommandUtils(cmdTimeout);
 		executor = Executors.newFixedThreadPool(threadNum);
 		mainExecutor = Executors.newSingleThreadExecutor();
@@ -84,9 +85,9 @@ public class TaskRunner {
 	}
 
 	public void stop() {
-		
+
 		executor.shutdown();
-		//kill the task queue listener
+		// kill the task queue listener
 		Task killTask = new Task(true);
 		TaskRegister.getInstance().addTask(killTask);
 		mainExecutor.shutdownNow();
@@ -113,7 +114,7 @@ public class TaskRunner {
 		private String modelId;
 		private String snapshotId;
 		private Map<String, String> entitySchemas;
-		
+
 		public void setEntitySchemas(Map<String, String> entitySchemas) {
 			this.entitySchemas = entitySchemas;
 		}
@@ -127,11 +128,11 @@ public class TaskRunner {
 			try {
 				while (true) {
 					task = TaskRegister.getInstance().getTaskByTake();
-					if(task.getKillSignal()){
+					if (task.getKillSignal()) {
 						LOG.info("Kill signal received, stopping the task listener");
 						return;
 					}
-					setModelId(task.getModelId());					
+					setModelId(task.getModelId());
 					setEntitySchemas(task.getEntitySchemas());
 					execute();
 				}
@@ -149,29 +150,29 @@ public class TaskRunner {
 			}
 			TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
 			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
-			//Run pre-processing script/cmd
+			// Run pre-processing script/cmd
 			String cmdError = "";
-		
-			if(preProcessingCmd != null){
-				LOG.info("Pre-processing enabled: " + preProcessingCmd);
-				try {
-					cmdError = cmdUtil.executeCmd(preProcessingCmd);
-				} catch (Exception e) {
-					String msg = "pre-processing failed, sending fail result: " + e.getMessage();
-					LOG.error(msg);
-					processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
-					return false;
-				}
-				if(cmdError!=null && !cmdError.isEmpty()){
-					String msg = "pre-processing failed, sending fail result: " + cmdError;
-					LOG.error(msg);
-					processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
-					return false;
-				}
-				
-			}
-			
+
 			try {
+
+				if (preProcessingCmd != null) {
+					LOG.info("Pre-processing enabled: " + preProcessingCmd);
+					try {
+						cmdError = cmdUtil.executeCmd(preProcessingCmd);
+					} catch (Exception e) {
+						String msg = "pre-processing failed, sending fail result: " + e.getMessage();
+						LOG.error(msg);
+						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
+						return false;
+					}
+					if (cmdError != null && !cmdError.isEmpty()) {
+						String msg = "pre-processing failed, sending fail result: " + cmdError;
+						LOG.error(msg);
+						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
+						return false;
+					}
+
+				}
 
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
 				for (Entry<String, String> entry : entitySchemas.entrySet()) {
@@ -182,20 +183,20 @@ public class TaskRunner {
 				}
 				List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
 				boolean isSuccess = true;
-				for(Future<Boolean> future : result){
-					if(future.isCancelled()){
+				for (Future<Boolean> future : result) {
+					if (future.isCancelled()) {
 						LOG.error("Task timeout");
 						isSuccess = false;
 						break;
 					}
-					if(future.get() == null || !future.get()){
+					if (future.get() == null || !future.get()) {
 						isSuccess = false;
 						break;
 					}
-					
+
 				}
-				
-				if(isSuccess)
+
+				if (isSuccess)
 					processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId, modelId));
 				else {
 					String msg = "Tasks failed because one of tasks failed or timeout";
@@ -204,7 +205,7 @@ public class TaskRunner {
 				}
 
 				Result runningResult = new Result(snapshotId, result);
-				TaskRegister.getInstance().addResult(runningResult);				
+				TaskRegister.getInstance().addResult(runningResult);
 				return true;
 
 			} catch (Exception e) {
