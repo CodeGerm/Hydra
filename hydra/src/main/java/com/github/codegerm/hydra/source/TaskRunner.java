@@ -149,7 +149,7 @@ public class TaskRunner {
 				throw new FlumeException("Entity Schemas are not initiated");
 			}
 			TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
-			processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
+			//processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 			// Run pre-processing script/cmd
 			String cmdError = "";
 
@@ -162,17 +162,21 @@ public class TaskRunner {
 					} catch (Exception e) {
 						String msg = "pre-processing failed, sending fail result: " + e.getMessage();
 						LOG.error(msg);
+						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));			
 						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
 						return false;
 					}
 					if (cmdError != null && !cmdError.isEmpty()) {
 						String msg = "pre-processing failed, sending fail result: " + cmdError;
 						LOG.error(msg);
+						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
 						return false;
 					}
 
 				}
+				
+				processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
 				for (Entry<String, String> entry : entitySchemas.entrySet()) {
