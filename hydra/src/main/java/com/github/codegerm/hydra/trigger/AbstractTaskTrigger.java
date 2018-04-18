@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.github.codegerm.hydra.source.SqlSourceUtil;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
+import com.github.codegerm.hydra.task.TaskRegisterFactory;
 import com.github.codegerm.hydra.utils.AvroSchemaUtils;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
@@ -27,10 +28,19 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 	protected Context context;
 	protected List<Action> actions = new ArrayList<>();
 	protected Action defaultAction;
+	private TaskRegister register;
 
 	@Override
 	public void configure(Context context) {
 		this.context = context;
+		String taskQueueId =  context.getString(SqlSourceUtil.TASK_QUEUE_ID);
+		if(taskQueueId == null){
+			LOG.info("No task queue id defined, use default queue");
+			register = TaskRegister.getInstance();
+		} else {
+			LOG.info("Task queue id: " + taskQueueId );
+			register = TaskRegisterFactory.getInstance().getPutInstance(taskQueueId);
+		}
 	}
 
 	@Override
@@ -69,7 +79,7 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 				schemaMap = AvroSchemaUtils.replaceSchemaNameByEnv(schemaMap, replace);
 				if (schemaMap != null) {
 					LOG.info("Start snapshot, task queued.");
-					TaskRegister.getInstance().addTask(new Task(schemaMap, instanceName));
+					register.addTask(new Task(schemaMap, instanceName));
 				} else {
 					LOG.warn("Schema format is invalid, skip snapshot.");
 				}

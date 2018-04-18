@@ -27,6 +27,7 @@ import com.github.codegerm.hydra.source.SqlSourceUtil.MODE;
 import com.github.codegerm.hydra.task.Result;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
+import com.github.codegerm.hydra.task.TaskRegisterFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -50,6 +51,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	protected Map<String, String> entitySchemas;
 	private MODE mode;
 
+	private TaskRegister register;
 	/* (non-Javadoc)
 	 * @see org.apache.flume.conf.Configurable#configure(org.apache.flume.Context)
 	 */
@@ -58,7 +60,14 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	public void configure(Context context) {
 		LOG.info("Start configuring SqlSource");
 		this.context = context;
-
+		String taskQueueId =  context.getString(SqlSourceUtil.TASK_QUEUE_ID);
+		if(taskQueueId == null){
+			LOG.info("No task queue id defined, use default queue");
+			register = TaskRegister.getInstance();
+		} else {
+			LOG.info("Task queue id: " + taskQueueId );
+			register = TaskRegisterFactory.getInstance().getPutInstance(taskQueueId);
+		}
 		String modeString  = context.getString(SqlSourceUtil.MODE_KEY, SqlSourceUtil.DEFAULT_MODE);
 		if(!EnumUtils.isValidEnum(MODE.class, modeString))
 			throw new FlumeException("Mode: " + modeString + " is not supported");
@@ -167,8 +176,8 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotEndEvent(snapshotId, modelId));
 			if(mode.equals(MODE.TASK)){
 				Result runningResult = new Result(snapshotId, result);
-				TaskRegister.getInstance().addResult(runningResult);
-				TaskRegister.getInstance().markTaskDone(snapshotId);
+				register.addResult(runningResult);
+				register.markTaskDone(snapshotId);
 			} else
 				Thread.sleep(pollInterval);
 			return Status.READY;
