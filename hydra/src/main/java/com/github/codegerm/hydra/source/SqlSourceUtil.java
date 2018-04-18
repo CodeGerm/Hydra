@@ -15,9 +15,12 @@ public class SqlSourceUtil {
 	public static final String STATUS_DIRECTORY_KEY = "status.file.path";
 	public static final String POLL_INTERVAL_KEY = "poll.interval";
 	public static final String TABLE_KEY = "table";
+	public static final String COLUMNS_KEY = "columns";
 	public static final String TIMEOUT_KEY = "snapshot_task_timeout";
 	public static final String CMD_TIMEOUT_KEY = "pre_processing_timeout";
 	public static final String CMD_KEY = "pre_processing_cmd";
+	public static final String HANDLER_KEY = "handler";
+	public static final String TASK_QUEUE_ID = "task.queue.id";
 
 	public static final String MODEL_INSTANCE_KEY = "model.instance";
 	public static final String MODEL_SCHEMA_KEY = "model.schema";

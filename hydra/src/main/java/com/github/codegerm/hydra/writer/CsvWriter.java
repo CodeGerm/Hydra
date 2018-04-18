@@ -95,6 +95,12 @@ public class CsvWriter implements RecordWriter{
 
 	}
 
+	@Override
+	public void writeAllString(List<String> records) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 
 }

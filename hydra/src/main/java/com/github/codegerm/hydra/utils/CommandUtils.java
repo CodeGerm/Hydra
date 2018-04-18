@@ -59,9 +59,10 @@ public class CommandUtils  {
 					ProcessBuilder builder2 = new ProcessBuilder(terminateCmd);
 					builder2.start();
 					return "Cmd timeout after " + timeout + " seconds";
-				} else
+				} else {
 					getCmdError(process, errOutput);
-				    getCmdOutput(process, output);
+					getCmdOutput(process, output);
+				}
 			} else {
 				process.waitFor();
 				getCmdError(process, errOutput);
