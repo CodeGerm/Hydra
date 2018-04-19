@@ -51,6 +51,20 @@ public abstract class AbstractRecordWriter implements RecordWriter {
 			}
 		}
 	}
+	
+	@Override
+	public void writeAllString(List<String> records) {
+		int batchSize = getEventBatchSize();
+		for (int i = 0; i < records.size(); i += batchSize) {
+			int end = (i + batchSize) > records.size() ? records.size() : (i + batchSize);
+			List<String> subRecords = records.subList(i, end);
+			byte[] body = serializeEventsString(subRecords, entitySchema);
+			if (body != null) {
+				Event event = SqlEventBuilder.build(body, header);
+				events.add(event);
+			}
+		}
+	}
 
 	@Override
 	public void flush() {
@@ -75,5 +89,7 @@ public abstract class AbstractRecordWriter implements RecordWriter {
 	protected abstract String getEntityNameFromSchema(String schema);
 
 	protected abstract byte[] serializeEvents(List<List<Object>> records, String schema);
+
+	protected abstract byte[] serializeEventsString(List<String> records, String schema);
 
 }

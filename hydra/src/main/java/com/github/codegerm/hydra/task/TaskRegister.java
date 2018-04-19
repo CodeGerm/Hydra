@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+
 /**
  * @author yufan.liu
  *
@@ -18,7 +19,9 @@ public class TaskRegister {
 	private BlockingQueue<Result> resultQueue;
 	private Map<String, Task> runningTasks;
 	
-	private  TaskRegister() {
+	
+	
+	public TaskRegister() {
 		taskQueue = new ArrayBlockingQueue<Task>(DEFAULT_QUEUE_SIZE);
 		resultQueue = new ArrayBlockingQueue<Result>(DEFAULT_QUEUE_SIZE);
 		runningTasks = new HashMap<>();
@@ -27,6 +30,8 @@ public class TaskRegister {
 	public static TaskRegister getInstance(){
 		return instance;
 	}
+	
+	
 	
 	/**
 	 * @param task

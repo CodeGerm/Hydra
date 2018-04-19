@@ -38,6 +38,11 @@ public class AvroJsonWriter extends AbstractAvroWriter {
 		}
 		return GSON.toJson(result).getBytes();
 	}
+	
+	
+	protected byte[] serializeEventsString(List<String> records, String schema) {
+		return GSON.toJson(records).getBytes();
+	}
 
 	private byte[] serializeEvent(List<Object> record, String schema) {
 		try {

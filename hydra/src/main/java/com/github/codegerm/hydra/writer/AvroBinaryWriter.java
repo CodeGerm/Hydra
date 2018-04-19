@@ -45,4 +45,11 @@ public class AvroBinaryWriter extends AbstractAvroWriter {
 		}
 	}
 
+	@Override
+	protected byte[] serializeEventsString(List<String> records, String schema) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 }

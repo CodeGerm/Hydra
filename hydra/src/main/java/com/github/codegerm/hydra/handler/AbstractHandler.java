@@ -16,13 +16,20 @@ public abstract class AbstractHandler implements Callable<Boolean> {
 	protected String entitySchema;
 	
 	public AbstractHandler(String snapshotId, Context context, ChannelProcessor processor, String modelId, String table, String entitySchema) {
+		initialize(snapshotId,  context,processor, modelId, table, entitySchema);
+		configure();
+	}
+	
+	public AbstractHandler(){
+	}
+	
+	public void initialize(String snapshotId, Context context, ChannelProcessor processor, String modelId, String table, String entitySchema){
 		this.context = context;
 		this.processor = processor;
 		this.modelId = modelId;
 		this.table = table;
 		this.snapshotId = snapshotId;
 		this.entitySchema = entitySchema;
-		configure();
 	}
 	
 	@Override

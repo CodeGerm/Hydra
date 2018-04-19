@@ -41,6 +41,7 @@ import com.github.codegerm.hydra.source.SqlSource;
 import com.github.codegerm.hydra.source.SqlSourceUtil;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
+import com.github.codegerm.hydra.task.TaskRegisterFactory;
 import com.github.codegerm.hydra.writer.AvroJsonWriter;
 import com.github.codegerm.hydra.writer.AvroRecordUtil;
 import com.google.common.base.Charsets;
@@ -68,6 +69,8 @@ public class TestSqlSource {
 	private Map<String, String> entitySchemas;
 	private Map<String, String> entitySchemas2;
 	private Map<String, String> entitySchemas3;
+	
+	private String taskqueueid = "1234";
 
 	@Before
 	public void setup() throws SQLException {
@@ -230,6 +233,7 @@ public class TestSqlSource {
 		context.put("hibernate.connection.driver_class", DB_DRIVER);
 		context.put("status.file.name", "statusFile");
 		context.put("pre_processing_cmd", "ls");
+		context.put("task.queue.id", taskqueueid);
 		context.put("status.file.path", SOURCE_STATUS_DIR + "/eventdriven");
 		context.put(SqlSourceUtil.POLL_INTERVAL_KEY, "1000");
 		context.put(SqlSourceUtil.TIMEOUT_KEY, "1000");
@@ -269,7 +273,8 @@ public class TestSqlSource {
 		System.out.println("Testing event driven sql source: ");
 		eventDrivenSource.start();
 		Task task = new Task(entitySchemas3, "testTaskMode");
-		TaskRegister.getInstance().addTask(task);
+		TaskRegisterFactory.getInstance().getPutInstance(taskqueueid).addTask(task);
+		
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {

@@ -18,10 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.codegerm.hydra.event.StatusEventBuilder;
+import com.github.codegerm.hydra.handler.AbstractHandler;
+import com.github.codegerm.hydra.handler.HandlerFactory;
 import com.github.codegerm.hydra.handler.HibernateHandler;
 import com.github.codegerm.hydra.task.Result;
 import com.github.codegerm.hydra.task.Task;
 import com.github.codegerm.hydra.task.TaskRegister;
+import com.github.codegerm.hydra.task.TaskRegisterFactory;
 import com.github.codegerm.hydra.utils.CommandUtils;
 
 /**
@@ -48,6 +51,9 @@ public class TaskRunner {
 	private ExecutorService executor;
 	private ExecutorService mainExecutor;
 	private SqlRunnable runner;
+	private String handlerString;
+	private String taskQueueId;
+	private TaskRegister register;
 
 	public TaskRunner(ChannelProcessorProvider provider) {
 		this.channelProcessorProvider = provider;
@@ -68,15 +74,23 @@ public class TaskRunner {
 
 	public void configure(Context context) {
 		this.context = context;
-
 		int threadNum = context.getInteger(SqlSourceUtil.WORKER_THREAD_NUM_KEY, SqlSourceUtil.DEFAULT_THREAD_NUM);
 		timeout = context.getLong(SqlSourceUtil.TIMEOUT_KEY, SqlSourceUtil.DEFAULT_TIMEOUT);
 		cmdTimeout = context.getLong(SqlSourceUtil.CMD_TIMEOUT_KEY, SqlSourceUtil.DEFAULT_CMD_TIMEOUT);
 		preProcessingCmd = context.getString(SqlSourceUtil.CMD_KEY);
+		handlerString = context.getString(SqlSourceUtil.HANDLER_KEY);
 		if (preProcessingCmd != null)
 			cmdUtil = new CommandUtils(cmdTimeout);
 		executor = Executors.newFixedThreadPool(threadNum);
 		mainExecutor = Executors.newSingleThreadExecutor();
+		taskQueueId =  context.getString(SqlSourceUtil.TASK_QUEUE_ID);
+		if(taskQueueId == null){
+			LOG.info("No task queue id defined, use default queue");
+			register = TaskRegister.getInstance();
+		} else {
+			LOG.info("Task queue id: " + taskQueueId );
+			register = TaskRegisterFactory.getInstance().getPutInstance(taskQueueId);
+		}
 	}
 
 	public void start() {
@@ -89,7 +103,7 @@ public class TaskRunner {
 		executor.shutdown();
 		// kill the task queue listener
 		Task killTask = new Task(true);
-		TaskRegister.getInstance().addTask(killTask);
+		register.addTask(killTask);
 		mainExecutor.shutdownNow();
 		while (!executor.isTerminated()) {
 			LOG.debug("Waiting for exec executor service to stop");
@@ -114,6 +128,7 @@ public class TaskRunner {
 		private String modelId;
 		private String snapshotId;
 		private Map<String, String> entitySchemas;
+		
 
 		public void setEntitySchemas(Map<String, String> entitySchemas) {
 			this.entitySchemas = entitySchemas;
@@ -122,12 +137,13 @@ public class TaskRunner {
 		public void setModelId(String modelId) {
 			this.modelId = modelId;
 		}
+		
 
 		@Override
 		public void run() {
 			try {
 				while (true) {
-					task = TaskRegister.getInstance().getTaskByTake();
+					task = register.getTaskByTake();
 					if (task.getKillSignal()) {
 						LOG.info("Kill signal received, stopping the task listener");
 						return;
@@ -148,7 +164,7 @@ public class TaskRunner {
 			if (entitySchemas == null) {
 				throw new FlumeException("Entity Schemas are not initiated");
 			}
-			TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
+			register.assignSnapshotId(snapshotId, task);
 			//processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 			// Run pre-processing script/cmd
 			String cmdError = "";
@@ -179,10 +195,19 @@ public class TaskRunner {
 				processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
 
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
+
 				for (Entry<String, String> entry : entitySchemas.entrySet()) {
 					LOG.info("Starting worker thread for table [" + entry.getKey() + "]");
-					HibernateHandler handler = new HibernateHandler(snapshotId, context,
-							channelProcessorProvider.provide(), modelId, entry.getKey(), entry.getValue());
+					AbstractHandler handler = null;
+					if(handlerString == null || handlerString.isEmpty()) {
+						handler = new HibernateHandler(snapshotId, context,
+								channelProcessorProvider.provide(), modelId, entry.getKey(), entry.getValue());
+					} else {
+						handler = HandlerFactory.createHandler(handlerString);
+						handler.initialize(snapshotId, context,
+								channelProcessorProvider.provide(), modelId, entry.getKey(), entry.getValue());
+						handler.configure();
+					}
 					taskList.add(handler);
 				}
 				List<Future<Boolean>> result = executor.invokeAll(taskList, timeout, TimeUnit.MILLISECONDS);
@@ -209,14 +234,14 @@ public class TaskRunner {
 				}
 
 				Result runningResult = new Result(snapshotId, result);
-				TaskRegister.getInstance().addResult(runningResult);
+				register.addResult(runningResult);
 				return true;
 
 			} catch (Exception e) {
 				LOG.error("Error procesing", e);
 				return false;
 			} finally {
-				TaskRegister.getInstance().markTaskDone(snapshotId);
+				register.markTaskDone(snapshotId);
 			}
 		}
 	}
