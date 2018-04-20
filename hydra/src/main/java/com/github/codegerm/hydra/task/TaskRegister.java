@@ -48,6 +48,10 @@ public class TaskRegister {
 		return taskQueue.take();
 	}
 	
+	public void cleanTaskQueue(){
+		taskQueue.clear();
+	}
+	
 	public void assignSnapshotId(String snapshotId, Task task) {
 		runningTasks.put(snapshotId, task);
 	}

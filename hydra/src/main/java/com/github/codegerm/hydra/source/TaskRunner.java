@@ -54,6 +54,7 @@ public class TaskRunner {
 	private String handlerString;
 	private String taskQueueId;
 	private TaskRegister register;
+	private long serverTimeout;
 
 	public TaskRunner(ChannelProcessorProvider provider) {
 		this.channelProcessorProvider = provider;
@@ -91,6 +92,8 @@ public class TaskRunner {
 			LOG.info("Task queue id: " + taskQueueId );
 			register = TaskRegisterFactory.getInstance().getPutInstance(taskQueueId);
 		}
+		register.cleanTaskQueue();
+		serverTimeout = context.getLong(SqlSourceUtil.SERVER_TIMEOUT_KEY, SqlSourceUtil.DEFAULT_SERVER_TIMEOUT);
 	}
 
 	public void start() {
@@ -178,21 +181,21 @@ public class TaskRunner {
 					} catch (Exception e) {
 						String msg = "pre-processing failed, sending fail result: " + e.getMessage();
 						LOG.error(msg);
-						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));			
+						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));			
 						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
 						return false;
 					}
 					if (cmdError != null && !cmdError.isEmpty()) {
 						String msg = "pre-processing failed, sending fail result: " + cmdError;
 						LOG.error(msg);
-						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
+						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));
 						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
 						return false;
 					}
 
 				}
 				
-				processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
+				processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));
 
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
 
