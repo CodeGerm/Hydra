@@ -44,6 +44,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	private String snapshotId;
 	private long pollInterval;
 	private long timeout;
+	private long serverTimeout;
 	private Context context;
 	private long backoffSleepIncrement;
 	private long maxBackOffSleepInterval;
@@ -77,6 +78,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 		int thread = context.getInteger(SqlSourceUtil.WORKER_THREAD_NUM_KEY, SqlSourceUtil.DEFAULT_THREAD_NUM);
 		
 		timeout = context.getLong(SqlSourceUtil.TIMEOUT_KEY, SqlSourceUtil.DEFAULT_TIMEOUT);
+		serverTimeout = context.getLong(SqlSourceUtil.SERVER_TIMEOUT_KEY, SqlSourceUtil.DEFAULT_SERVER_TIMEOUT);
 		executor = Executors.newFixedThreadPool(thread);
 
 		backoffSleepIncrement = context.getLong(PollableSourceConstants.BACKOFF_SLEEP_INCREMENT,
@@ -162,7 +164,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			throw new FlumeException("Entity Schemas is not initiated");
 		}
 		TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
-		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId));
+		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));
 		try {
 
 			List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();

@@ -18,6 +18,8 @@ public class StatusEventBuilder implements EventBuilder {
 
 	public static final String STATUS_TYPE_KEY = "statusType";
 	public static final String SNAPSHOT_ID_KEY = "snapshotId";
+	public static final String SNAPSHOT_TIMEOUT_KEY = "snapshotCreationTimeout";
+	
 	
 	public static final String EVENT_TYPE = "Status.Event";
 	
@@ -45,8 +47,10 @@ public class StatusEventBuilder implements EventBuilder {
 	
 	
 	
-	public static Event buildSnapshotBeginEvent(String snapshotId, String modelId){
-		return buildStatusEvent(SNAPSHOT_BEGIN_TYPE, snapshotId, modelId, null);
+	public static Event buildSnapshotBeginEvent(String snapshotId, String modelId, Long snapshotCreationTimeout){
+		Event event = buildStatusEvent(SNAPSHOT_BEGIN_TYPE, snapshotId, modelId, null);
+		event.getHeaders().put(SNAPSHOT_TIMEOUT_KEY, snapshotCreationTimeout.toString());
+		return event;
 	}
 	
 	public static Event buildSnapshotEndEvent(String snapshotId, String modelId){

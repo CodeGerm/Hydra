@@ -17,6 +17,7 @@ public class SqlSourceUtil {
 	public static final String TABLE_KEY = "table";
 	public static final String COLUMNS_KEY = "columns";
 	public static final String TIMEOUT_KEY = "snapshot_task_timeout";
+	public static final String SERVER_TIMEOUT_KEY = "snapshot_server_timeout";
 	public static final String CMD_TIMEOUT_KEY = "pre_processing_timeout";
 	public static final String CMD_KEY = "pre_processing_cmd";
 	public static final String HANDLER_KEY = "handler";
@@ -37,6 +38,7 @@ public class SqlSourceUtil {
 	public static final long DEFAULT_SCHEDULE_POLL_INTERVAL = 100000;
 	public static final long DEFAULT_TASK_POLL_INTERVAL = 1000;
 	public static final long DEFAULT_TIMEOUT = 36000000;
+	public static final long DEFAULT_SERVER_TIMEOUT = 60000;
 	public static final long DEFAULT_CMD_TIMEOUT = 600000;
 	public static final String DEFAULT_MODE = MODE.TASK.name();
 	
