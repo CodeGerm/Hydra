@@ -51,6 +51,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 	private Gson gson = new GsonBuilder().create();
 	protected Map<String, String> entitySchemas;
 	private MODE mode;
+	private String createBy;
 
 	private TaskRegister register;
 	/* (non-Javadoc)
@@ -140,6 +141,10 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			} else {
 				setModelId(task.getModelId());
 				setEntitySchemas(task.getEntitySchemas());
+				Map<String, String> extraInfo = task.getExtraInfo();
+				if(extraInfo!=null){
+					setCreateBy(extraInfo.get(SqlSourceUtil.CREATE_BY_KEY));
+				}
 				status = execute();
 			}			
 			try {
@@ -164,7 +169,7 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 			throw new FlumeException("Entity Schemas is not initiated");
 		}
 		TaskRegister.getInstance().assignSnapshotId(snapshotId, task);
-		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));
+		getChannelProcessor().processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout, createBy));
 		try {
 
 			List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
@@ -210,6 +215,10 @@ public class SqlSource extends AbstractSource implements Configurable, PollableS
 
 	public void setModelId(String modelId){
 		this.modelId = modelId;
+	}
+	
+	public void setCreateBy(String createBy) {
+		this.createBy = createBy;
 	}
 
 }

@@ -53,12 +53,12 @@ public class CommandUtils  {
 			if (timeout > 0) {
 				finished = process.waitFor(timeout, TimeUnit.MILLISECONDS);
 				if (!finished) {
-					logger.warn("Cmd timeout after " + timeout + " seconds");
+					logger.warn("Cmd timeout after " + timeout/1000 + " seconds");
 					String pid = Long.toString(getProcessID(process));
 					List<String> terminateCmd = generateTerminateCmd(pid);
 					ProcessBuilder builder2 = new ProcessBuilder(terminateCmd);
 					builder2.start();
-					return "Cmd timeout after " + timeout + " seconds";
+					return "Cmd timeout after " + timeout/1000 + " seconds";
 				} else {
 					getCmdError(process, errOutput);
 					getCmdOutput(process, output);

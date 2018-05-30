@@ -130,6 +130,7 @@ public class TaskRunner {
 		private Task task;
 		private String modelId;
 		private String snapshotId;
+		private String createBy;
 		private Map<String, String> entitySchemas;
 		
 
@@ -139,6 +140,10 @@ public class TaskRunner {
 
 		public void setModelId(String modelId) {
 			this.modelId = modelId;
+		}
+		
+		public void setCreateBy(String createBy) {
+			this.createBy = createBy;
 		}
 		
 
@@ -153,6 +158,11 @@ public class TaskRunner {
 					}
 					setModelId(task.getModelId());
 					setEntitySchemas(task.getEntitySchemas());
+					Map<String, String> extraInfo = task.getExtraInfo();
+					if(extraInfo!=null){
+						setCreateBy(extraInfo.get(SqlSourceUtil.CREATE_BY_KEY));
+					}
+					
 					execute();
 				}
 			} catch (Exception e) {
@@ -181,21 +191,21 @@ public class TaskRunner {
 					} catch (Exception e) {
 						String msg = "pre-processing failed, sending fail result: " + e.getMessage();
 						LOG.error(msg);
-						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));			
+						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout, createBy));			
 						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
 						return false;
 					}
 					if (cmdError != null && !cmdError.isEmpty()) {
 						String msg = "pre-processing failed, sending fail result: " + cmdError;
 						LOG.error(msg);
-						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));
+						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout, createBy));
 						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
 						return false;
 					}
 
 				}
 				
-				processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout));
+				processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout, createBy));
 
 				List<Callable<Boolean>> taskList = new ArrayList<Callable<Boolean>>();
 
