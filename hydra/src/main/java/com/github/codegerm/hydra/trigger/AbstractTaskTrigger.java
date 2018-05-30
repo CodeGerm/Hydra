@@ -1,6 +1,7 @@
 package com.github.codegerm.hydra.trigger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +80,11 @@ public abstract class AbstractTaskTrigger implements TaskTrigger {
 				schemaMap = AvroSchemaUtils.replaceSchemaNameByEnv(schemaMap, replace);
 				if (schemaMap != null) {
 					LOG.info("Start snapshot, task queued.");
-					register.addTask(new Task(schemaMap, instanceName));
+					Task task = new Task(schemaMap, instanceName);
+					Map <String, String> extraInfo = new HashMap<String, String>(); 
+					extraInfo.put(SqlSourceUtil.CREATE_BY_KEY, SqlSourceUtil.CREATE_BY_SYSTEM);
+					task.setExtraInfo(extraInfo);
+					register.addTask(task);
 				} else {
 					LOG.warn("Schema format is invalid, skip snapshot.");
 				}

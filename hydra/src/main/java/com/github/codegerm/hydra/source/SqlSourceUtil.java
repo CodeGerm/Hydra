@@ -44,5 +44,7 @@ public class SqlSourceUtil {
 	
 	//task keys
 	public static final String CREATE_BY_KEY = "createBy";
+	public static final String CREATE_BY_SYSTEM = "system auto snapshot";
+	
 	
 }
