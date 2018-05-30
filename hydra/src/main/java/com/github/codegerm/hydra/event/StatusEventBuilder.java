@@ -8,6 +8,8 @@ import org.apache.flume.event.SimpleEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.codegerm.hydra.source.SqlSourceUtil;
+
 public class StatusEventBuilder implements EventBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(StatusEventBuilder.class);
 	public static final String SNAPSHOT_BEGIN_TYPE = "snapshot.begin";
@@ -47,9 +49,10 @@ public class StatusEventBuilder implements EventBuilder {
 	
 	
 	
-	public static Event buildSnapshotBeginEvent(String snapshotId, String modelId, Long snapshotCreationTimeout){
+	public static Event buildSnapshotBeginEvent(String snapshotId, String modelId, Long snapshotCreationTimeout, String createBy){
 		Event event = buildStatusEvent(SNAPSHOT_BEGIN_TYPE, snapshotId, modelId, null);
 		event.getHeaders().put(SNAPSHOT_TIMEOUT_KEY, snapshotCreationTimeout.toString());
+		event.getHeaders().put(SqlSourceUtil.CREATE_BY_KEY, createBy);
 		return event;
 	}
 	
