@@ -42,4 +42,7 @@ public class SqlSourceUtil {
 	public static final long DEFAULT_CMD_TIMEOUT = 600000;
 	public static final String DEFAULT_MODE = MODE.TASK.name();
 	
+	//task keys
+	public static final String CREATE_BY_KEY = "createBy";
+	
 }
