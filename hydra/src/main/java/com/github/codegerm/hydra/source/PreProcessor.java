@@ -4,6 +4,6 @@ import org.apache.flume.Context;
 
 public interface PreProcessor {
 	
-	public void process(Context context);
+	public void process(Context context) throws Exception;
 
 }
