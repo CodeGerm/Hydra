@@ -20,6 +20,7 @@ public class SqlSourceUtil {
 	public static final String SERVER_TIMEOUT_KEY = "snapshot_server_timeout";
 	public static final String CMD_TIMEOUT_KEY = "pre_processing_timeout";
 	public static final String CMD_KEY = "pre_processing_cmd";
+	public static final String PRE_PROCESSOR_KEY = "pre_processor";
 	public static final String HANDLER_KEY = "handler";
 	public static final String TASK_QUEUE_ID = "task.queue.id";
 

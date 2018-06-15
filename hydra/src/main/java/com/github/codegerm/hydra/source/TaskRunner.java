@@ -48,6 +48,7 @@ public class TaskRunner {
 	private long cmdTimeout;
 	private CommandUtils cmdUtil;
 	private String preProcessingCmd;
+	private String preProcessor;
 	private ExecutorService executor;
 	private ExecutorService mainExecutor;
 	private SqlRunnable runner;
@@ -79,12 +80,14 @@ public class TaskRunner {
 		timeout = context.getLong(SqlSourceUtil.TIMEOUT_KEY, SqlSourceUtil.DEFAULT_TIMEOUT);
 		cmdTimeout = context.getLong(SqlSourceUtil.CMD_TIMEOUT_KEY, SqlSourceUtil.DEFAULT_CMD_TIMEOUT);
 		preProcessingCmd = context.getString(SqlSourceUtil.CMD_KEY);
+		preProcessor =  context.getString(SqlSourceUtil.PRE_PROCESSOR_KEY);
 		handlerString = context.getString(SqlSourceUtil.HANDLER_KEY);
 		if (preProcessingCmd != null)
 			cmdUtil = new CommandUtils(cmdTimeout);
 		executor = Executors.newFixedThreadPool(threadNum);
 		mainExecutor = Executors.newSingleThreadExecutor();
 		taskQueueId =  context.getString(SqlSourceUtil.TASK_QUEUE_ID);
+			
 		if(taskQueueId == null){
 			LOG.info("No task queue id defined, use default queue");
 			register = TaskRegister.getInstance();
@@ -183,6 +186,21 @@ public class TaskRunner {
 			String cmdError = "";
 
 			try {
+				
+				if(preProcessor != null){
+					try {
+						PreProcessor processor = PreProcessorFactory.createProcessor(preProcessor);
+						processor.process(context);
+					} catch (Exception e) {
+						String msg = "pre-processing failed, sending fail result: " + e.getMessage();
+						LOG.error(msg);
+						processEvent(StatusEventBuilder.buildSnapshotBeginEvent(snapshotId, modelId, serverTimeout, createBy));			
+						processEvent(StatusEventBuilder.buildSnapshotErrorEvent(snapshotId, modelId, msg));
+						return false;
+					}
+				}
+				
+				
 
 				if (preProcessingCmd != null) {
 					LOG.info("Pre-processing enabled: " + preProcessingCmd);
